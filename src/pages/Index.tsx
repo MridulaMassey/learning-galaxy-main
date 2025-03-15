@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Award, Heart, CheckCircle, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Header from '@/components/layout/Header';
+import Header from '@/components/layout/Header1';
 import Footer from '@/components/layout/Footer';
 
 const features = [

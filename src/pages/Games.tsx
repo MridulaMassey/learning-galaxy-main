@@ -100,11 +100,10 @@ const studentAchievements = [
 
 const Dashboard = ({ userType = "student", userName = "User" }) => {
   return (
-     <div className="flex flex-col min-h-screen bg-[#fadad0]">
+     <div className="flex flex-col min-h-screen bg-[#87ccfc]">
     
       <Header isLoggedIn={true} userType={userType} userName={userName} />  
-      
-      <main className="flex-1 py-10"> 
+      <main className="flex-1 py-1"> 
       <div className="container px-4 md:px-6">
           <div className="flex flex-col gap-8">
 
@@ -149,7 +148,8 @@ const StudentDashboard = ({ activities, achievements }) => {
         {/********************************Start of Profile********************************************/}
       {/* Content Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-       <section className="lg:col-span-2 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+      
+        <section className="lg:col-span-2 animate-fade-in" style={{ animationDelay: '0.2s' }}>
             <Card className="bg-yellow-100">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -178,7 +178,7 @@ const StudentDashboard = ({ activities, achievements }) => {
        
         {/* Student Profile*/}
         <section className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          <Card  className="col-span-1 md:col-span-1 p-4 bg-[#66e2ab] rounded-2xl shadow-lg">
+          <Card  className="col-span-1 md:col-span-1 p-4 bg-red-200 rounded-2xl shadow-lg">
             
             <CardHeader className="flex flex-col items-center">
       {/* 🖼️ Avatar Image */}

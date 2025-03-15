@@ -54,12 +54,12 @@ const Dashboard: React.FC = () => {
         <div className="container px-4 md:px-6">
           <div className="flex flex-col gap-8">
             {/* Welcome Section */}
-            <section className="animate-fade-in">
+            {/* <section className="animate-fade-in">
               <div className="glass-panel rounded-2xl p-6 md:p-8">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <h1 className="text-2xl md:text-3xl font-bold tracking-tighter">
-                      ACTIVITIES!
+                      RESOURCES!
                     </h1>
                     <p className="text-muted-foreground mt-1">
                       Here's what's happening with your learning journey
@@ -78,7 +78,7 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </section>
+            </section> */}
             
             {/* Stats Section */}
             <section className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 animate-fade-in" style={{ animationDelay: '0.1s' }}>
@@ -185,7 +185,7 @@ const Dashboard: React.FC = () => {
               
               {/* Achievements Section */}
               <section className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
-                <Card>
+                {/* <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Award className="h-5 w-5 text-primary" />
@@ -219,7 +219,7 @@ const Dashboard: React.FC = () => {
                       </div>
                     </div>
                   </CardContent>
-                </Card>
+                </Card> */}
               </section>
             </div>
             

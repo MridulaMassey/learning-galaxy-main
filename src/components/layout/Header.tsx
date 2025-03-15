@@ -1,167 +1,84 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { LogOut, Bell } from 'lucide-react'; // Importing Logout & Notification icons
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X, LogOut, User, Heart, Award, Settings } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+const Navbar = () => {
+  const location = useLocation();
+  const [active, setActive] = useState(location.pathname);
 
-interface HeaderProps {
-  isLoggedIn?: boolean;
-  userType?: 'student' | 'teacher' | 'admin';
-  userName?: string;
-}
+  useEffect(() => {
+    setActive(location.pathname);
+  }, [location.pathname]);
 
-const Header: React.FC<HeaderProps> = ({ isLoggedIn = false, userType, userName }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const navItems = [
+    { name: "Home", icon: "🏠", link: "/dashboard" },
+    { name: "Lessons", icon: "📖", link: "/Resources" },
+    { name: "Activities", icon: "🎨", link: "/Activities" },
+    { name: "Games", icon: "🎮", link: "/Games", newTab: true },
+    { name: "Rewards", icon: "🏆", link: "/rewards" }
+  ];
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Link to="/" className="flex items-center gap-2">
-            <Heart className="h-8 w-8 text-primary animate-float" />
-            <span className="font-bold text-xl tracking-tight">Kind Hearts</span>
-          </Link>
-        </div>
+    <nav className="w-full bg-[#de0029] p-4 shadow-md flex items-center justify-between">
+      
+      {/* Left: Logo */}
+      <div className="flex items-center">
+           <img 
+          src="KH_logo3.png" 
+          alt="Logo"
+          className="h-16 w-auto object-contain"
+        />
+      </div>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6">
-          {isLoggedIn ? (
-            <>
-              <Link to="/dashboard" className="nav-link">Dashboard</Link>
-              {userType === 'teacher' && <Link to="/students" className="nav-link">Students</Link>}
-              {userType === 'admin' && <Link to="/admin" className="nav-link">Admin Panel</Link>}
-              <Link to="/activities" className="nav-link">Activities</Link>
-              <Link to="/achievements" className="nav-link">Achievements</Link>
-              
-              <div className="flex items-center gap-2 ml-4">
-                <Link to="/profile" className="flex items-center gap-1.5 text-sm font-medium">
-                  <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                    <User className="h-4 w-4" />
-                  </div>
-                  <span>{userName || 'User'}</span>
-                </Link>
-                <Button variant="ghost" size="icon" asChild>
-                  <Link to="/logout">
-                    <LogOut className="h-4 w-4" />
-                    <span className="sr-only">Log out</span>
-                  </Link>
-                </Button>
-              </div>
-            </>
+      {/* Center: Navigation Links */}
+      <div className="flex space-x-10">
+        {navItems.map((item) => (
+          item.newTab ? (
+            <a
+              key={item.name}
+              href={item.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center cursor-pointer p-2 rounded-lg transition-all text-white hover:bg-[#b90020]"
+            >
+              <div className="text-2xl">{item.icon}</div>
+              <p className="text-sm font-semibold">{item.name}</p>
+            </a>
           ) : (
-            <>
-              <Link to="/about" className="nav-link">About Us</Link>
-              <Link to="/contact" className="nav-link">Contact</Link>
-              <Button asChild className="ml-4 rounded-full btn-bounce">
-                <Link to="/login">Log In</Link>
-              </Button>
-            </>
-          )}
-        </nav>
+            <Link
+              key={item.name}
+              to={item.link}
+              className={`flex flex-col items-center cursor-pointer p-2 rounded-lg transition-all ${
+                active === item.link
+                  ? "bg-gradient-to-r from-yellow-400 to-orange-300 text-white"
+                  : "text-white hover:bg-[#b90020]"
+              }`}
+            >
+              <div className="text-2xl">{item.icon}</div>
+              <p className="text-sm font-semibold">{item.name}</p>
+            </Link>
+          )
+        ))}
+      </div>
 
-        {/* Mobile Menu Toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden"
-          onClick={toggleMenu}
+      {/* Right: Notification & Logout */}
+      <div className="flex items-center space-x-4">
+        {/* Notification Icon */}
+        <button className="p-2 rounded-lg hover:bg-red-600 transition-all">
+          <Bell className="h-6 w-6 text-white" />
+        </button>
+
+        {/* Logout Button */}
+        <button 
+          onClick={() => alert("Logging out...")} 
+          className="p-2 rounded-lg hover:bg-red-600 transition-all"
         >
-          {isMenuOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
-        </Button>
+          <LogOut className="h-6 w-6 text-white" />
+        </button>
       </div>
 
-      {/* Mobile Navigation */}
-      <div
-        className={cn(
-          "fixed inset-0 top-16 z-40 bg-background/95 backdrop-blur-sm md:hidden transform transition-transform duration-300 ease-in-out",
-          isMenuOpen ? "translate-x-0" : "translate-x-full"
-        )}
-      >
-        <nav className="container py-8 flex flex-col gap-4">
-          {isLoggedIn ? (
-            <>
-              <div className="flex flex-col items-center mb-8">
-                <div className="h-20 w-20 rounded-full bg-primary/20 flex items-center justify-center text-primary mb-2">
-                  <User className="h-10 w-10" />
-                </div>
-                <span className="text-lg font-medium">{userName || 'User'}</span>
-                <span className="text-sm text-muted-foreground capitalize">{userType}</span>
-              </div>
-              
-              <Link to="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted" onClick={toggleMenu}>
-                <Heart className="h-5 w-5 text-primary" />
-                <span>Dashboard</span>
-              </Link>
-              
-              {userType === 'teacher' && (
-                <Link to="/students" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted" onClick={toggleMenu}>
-                  <User className="h-5 w-5 text-primary" />
-                  <span>Students</span>
-                </Link>
-              )}
-              
-              {userType === 'admin' && (
-                <Link to="/admin" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted" onClick={toggleMenu}>
-                  <Settings className="h-5 w-5 text-primary" />
-                  <span>Admin Panel</span>
-                </Link>
-              )}
-              
-              <Link to="/activities" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted" onClick={toggleMenu}>
-                <Heart className="h-5 w-5 text-primary" />
-                <span>Activities</span>
-              </Link>
-              
-              <Link to="/achievements" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted" onClick={toggleMenu}>
-                <Award className="h-5 w-5 text-primary" />
-                <span>Achievements</span>
-              </Link>
-              
-              <Link to="/profile" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted" onClick={toggleMenu}>
-                <User className="h-5 w-5 text-primary" />
-                <span>Profile</span>
-              </Link>
-              
-              <Link to="/logout" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted mt-4 text-destructive" onClick={toggleMenu}>
-                <LogOut className="h-5 w-5" />
-                <span>Log Out</span>
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link to="/" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted" onClick={toggleMenu}>
-                <Heart className="h-5 w-5 text-primary" />
-                <span>Home</span>
-              </Link>
-              
-              <Link to="/about" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted" onClick={toggleMenu}>
-                <Heart className="h-5 w-5 text-primary" />
-                <span>About Us</span>
-              </Link>
-              
-              <Link to="/contact" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted" onClick={toggleMenu}>
-                <Heart className="h-5 w-5 text-primary" />
-                <span>Contact</span>
-              </Link>
-              
-              <div className="mt-8">
-                <Button className="w-full rounded-full" asChild onClick={toggleMenu}>
-                  <Link to="/login">Log In</Link>
-                </Button>
-              </div>
-            </>
-          )}
-        </nav>
-      </div>
-    </header>
+    </nav>
   );
 };
 
-export default Header;
+export default Navbar;

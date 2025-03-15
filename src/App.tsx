@@ -8,6 +8,9 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import LoginForm from "./components/auth/LoginForm";
 import NotFound from "./pages/NotFound";
+import Activities from './pages/Activities';
+import Resources from './pages/Resources';
+import Games from './pages/Games';
 
 const queryClient = new QueryClient();
 
@@ -30,6 +33,9 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/logout" element={<Navigate to="/" />} />
+          <Route path="/activities" element={<Activities />} />
+          <Route path="/resources" element={<Resources />} />
+          <Route path="/games" element={<Games />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
