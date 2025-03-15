@@ -41,7 +41,7 @@ export class ActivityService {
 
   async getActivities(): Promise<Activity[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/activities`);
+      const response = await fetch(`${this.baseUrl}/activities/activitieslist`);
       if (!response.ok) {
         throw new Error("Failed to fetch activities");
       }
