@@ -1,11 +1,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  BookOpen, 
-  Calendar, 
-  Clock, 
-  Filter, 
+import {
+  BookOpen,
+  Calendar,
+  Clock,
+  Filter,
   Search,
   ChevronRight,
   Check,
@@ -30,7 +30,7 @@ import Footer from '@/components/layout/Footer';
 //import { Activity, activityService } from '@/services/activityService';
 // import Activities from "./pages/Activities";  
 import Activity from "./pages/Activity";
-import ActivityService  from "./pages/ActivityService";
+import { activityService } from './ActivityService';
 
 const Activities = () => {
   const navigate = useNavigate();
@@ -64,7 +64,7 @@ const Activities = () => {
 
     // Apply search filter
     if (searchQuery) {
-      result = result.filter(activity => 
+      result = result.filter(activity =>
         activity.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         activity.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
         activity.description.toLowerCase().includes(searchQuery.toLowerCase())
@@ -148,7 +148,7 @@ const Activities = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Header isLoggedIn={true} userType="student" userName="User" />
-      
+
       <main className="flex-1 py-8 animate-page-in">
         <div className="container px-4 md:px-6 max-w-7xl mx-auto">
           <section className="mb-6">
@@ -166,11 +166,11 @@ const Activities = () => {
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">
-                    {new Date().toLocaleDateString('en-US', { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
+                    {new Date().toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
                     })}
                   </span>
                 </div>
@@ -455,37 +455,37 @@ const Activities = () => {
                   </div>
                 </TabsContent>
                 <TabsContent value="hardcoded" className="mt-0">
-  <div className="space-y-4">
-    <Card className="activity-card overflow-hidden hover:border-primary/40 transition-all duration-300">
-      <CardContent className="p-6 grid gap-4">
-        <div className="flex flex-col">
-          <div className="flex items-start justify-between">
-            <h3 className="font-semibold text-lg">Hardcoded Activity Title</h3>
-            <div className="badge">Graded</div>
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">Subject: Hardcoded Subject</p>
-          <p className="mt-2 line-clamp-2 text-sm">This is a hardcoded description of an activity.</p>
-        </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between mt-auto">
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <Star className="h-3.5 w-3.5" />
-            <span>Grade: 90 / 100</span>
-          </div>
-          <Button variant="ghost" size="sm" className="self-end text-primary">
-            View Details
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  </div>
-</TabsContent>
+                  <div className="space-y-4">
+                    <Card className="activity-card overflow-hidden hover:border-primary/40 transition-all duration-300">
+                      <CardContent className="p-6 grid gap-4">
+                        <div className="flex flex-col">
+                          <div className="flex items-start justify-between">
+                            <h3 className="font-semibold text-lg">Hardcoded Activity Title</h3>
+                            <div className="badge">Graded</div>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">Subject: Hardcoded Subject</p>
+                          <p className="mt-2 line-clamp-2 text-sm">This is a hardcoded description of an activity.</p>
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between mt-auto">
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Star className="h-3.5 w-3.5" />
+                            <span>Grade: 90 / 100</span>
+                          </div>
+                          <Button variant="ghost" size="sm" className="self-end text-primary">
+                            View Details
+                            <ChevronRight className="h-4 w-4 ml-1" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </TabsContent>
               </Tabs>
             </section>
           </div>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Activities from "./pages/Activities";  
 import LoginForm from "./components/auth/LoginForm";
 import NotFound from "./pages/NotFound";
+import { Activity } from "lucide-react";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/activities" element={<Activities />} />
+          <Route path="/activity" element={<Activity />} />
           <Route path="/logout" element={<Navigate to="/" />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
