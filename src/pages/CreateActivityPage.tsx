@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,17 +33,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
 // Animation variants
@@ -123,20 +111,22 @@ const CreateActivity = () => {
     
     // Simulate API call with timeout
     try {
-      // This would be your actual API call to create an activity
-      const response = await fetch("https://localhost:44361/api/activities", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        throw new Error("Failed to create activity");
-      }  
-      console.log("Submitting activity:", data);
+          // This would be your actual API call to create an activity
+          const response = await fetch("https://localhost:44361/api/activities/create", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+          if (!response.ok) {
+            throw new Error("Failed to create activity");
+          }  
+          console.log("Submitting activity:", data);
+     // console.log("Submitting activity:", data);
       
-      // Simulate network delay
+      // Mock successful API response instead of actual fetch
+      // This simulates a successful API call without making a network request
       await new Promise((resolve) => setTimeout(resolve, 1500));
       
       toast.success("Activity created successfully!", {
@@ -408,35 +398,14 @@ const CreateActivity = () => {
                     Cancel
                   </Button>
 
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button 
-                        type="button"
-                        className="h-11 px-6 bg-primary hover:bg-primary/90 transition-colors"
-                        disabled={isSubmitting}
-                      >
-                        <Save className="mr-2 h-4 w-4" />
-                        {isSubmitting ? "Saving..." : "Save Activity"}
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="glass-morphism max-w-md">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Confirm Submission</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to create this activity? Once submitted, the details cannot be modified.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel className="h-11">Cancel</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={form.handleSubmit(onSubmit)}
-                          className="h-11 bg-primary hover:bg-primary/90 transition-colors"
-                        >
-                          Submit
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <Button 
+                    type="submit"
+                    className="h-11 px-6 bg-primary hover:bg-primary/90 transition-colors"
+                    disabled={isSubmitting}
+                  >
+                    <Save className="mr-2 h-4 w-4" />
+                    {isSubmitting ? "Saving..." : "Save Activity"}
+                  </Button>
                 </div>
               </form>
             </Form>
