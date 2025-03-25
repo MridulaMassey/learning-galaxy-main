@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -74,9 +74,9 @@ const activityFormSchema = z.object({
   dueDate: z.date({
     required_error: "Due date is required",
   }),
-  classLevel: z.string().min(1, { message: "Please select a class level" }),
+  classGroupId: z.string().min(1, { message: "Please select a class level" }),
   teacherId: z.string().min(1, { message: "Teacher ID is required" }),
-  classGroupId: z.string().nullable().optional(),
+ // classGroupId: z.string().nullable().optional(),
   activityName: z
     .string()
     .min(2, { message: "Activity name must be at least 2 characters long" })
@@ -86,6 +86,9 @@ const activityFormSchema = z.object({
 type ActivityFormValues = z.infer<typeof activityFormSchema>;
 
 const CreateActivity = () => {
+  const [classLevels, setClassLevels] = useState<{ id: string; name: string }[]>([]);
+  const [newClassLevel, setNewClassLevel] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -95,9 +98,9 @@ const CreateActivity = () => {
     description: "",
     pdfUrl: "",
     dueDate: undefined,
-    classLevel: "",
+    classGroupId: "",
     teacherId: "3B0E6135-B5B0-447B-1349-08DD63FADCF8", // Default teacher ID
-    classGroupId: null,
+   // classGroupId: null,
     activityName: "",
   };
 
@@ -106,13 +109,14 @@ const CreateActivity = () => {
     defaultValues,
   });
 
+
   const onSubmit = async (data: ActivityFormValues) => {
     setIsSubmitting(true);
     
     // Simulate API call with timeout
     try {
           // This would be your actual API call to create an activity
-          const response = await fetch("https://localhost:44361/api/activities/create", {
+          const response = await fetch("https://localhost:44361/api/activities", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -145,16 +149,39 @@ const CreateActivity = () => {
       setIsSubmitting(false);
     }
   };
+  
+
 
   const handleCancel = () => {
     navigate("/activities");
   };
+  useEffect(() => {
+    const fetchClassLevels = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch("https://localhost:44361/api/classgroups");
+        if (!response.ok) {
+          throw new Error("Failed to fetch class levels");
+        }
+        const data = await response.json();
 
-  const classLevels = [
-    "One", "Two", "Three", "Four", "Five", 
-    "Six", "Seven", "Eight", "Nine", "Ten",
-    "Eleven", "Twelve"
-  ];
+        // Map the response to extract only the classGroupId and className
+        const extractedClassLevels = data.map((item: { classGroupId: string; className: string }) => ({
+          id: item.classGroupId, // Bind as value
+          name: item.className,   // Display in dropdown
+        }));
+        
+        setClassLevels(extractedClassLevels);
+      } catch (error) {
+        console.error("Error fetching class levels:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClassLevels();
+  }, []);
+
 
   return (
     <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">
@@ -331,7 +358,7 @@ const CreateActivity = () => {
                   <motion.div variants={itemVariants}>
                     <FormField
                       control={form.control}
-                      name="classLevel"
+                      name="classGroupId"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Class Level</FormLabel>
@@ -346,8 +373,8 @@ const CreateActivity = () => {
                             </FormControl>
                             <SelectContent>
                               {classLevels.map((level) => (
-                                <SelectItem key={level} value={level}>
-                                  {level}
+                                <SelectItem key={level.id} value={level.id}>
+                                  {level.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -361,29 +388,7 @@ const CreateActivity = () => {
                     />
                   </motion.div>
 
-                  <motion.div variants={itemVariants}>
-                    <FormField
-                      control={form.control}
-                      name="classGroupId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Class Group ID (Optional)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="e.g., CS101-A" 
-                              value={field.value || ""}
-                              onChange={(e) => field.onChange(e.target.value || null)}
-                              className="h-12"
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Specific class group for this activity
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </motion.div>
+              
                 </div>
 
                 <div className="pt-6 flex justify-end space-x-4">
