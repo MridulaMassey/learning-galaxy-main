@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -34,8 +34,8 @@ import {
 } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { CreateActivityRequest } from "./CreateActivityRequest";
 
-// Animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -60,7 +60,6 @@ const itemVariants = {
   },
 };
 
-// Form schema
 const activityFormSchema = z.object({
   title: z
     .string()
@@ -70,13 +69,11 @@ const activityFormSchema = z.object({
     .string()
     .min(10, { message: "Description must be at least 10 characters long" })
     .max(1000, { message: "Description must be less than 1000 characters" }),
-  pdfUrl: z.string().url({ message: "Please enter a valid URL" }),
   dueDate: z.date({
     required_error: "Due date is required",
   }),
   classGroupId: z.string().min(1, { message: "Please select a class level" }),
   teacherId: z.string().min(1, { message: "Teacher ID is required" }),
- // classGroupId: z.string().nullable().optional(),
   activityName: z
     .string()
     .min(2, { message: "Activity name must be at least 2 characters long" })
@@ -91,16 +88,16 @@ const CreateActivity = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileBase64, setFileBase64] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
 
-  // Default values from your example
   const defaultValues: Partial<ActivityFormValues> = {
     title: "",
     description: "",
-    pdfUrl: "",
     dueDate: undefined,
     classGroupId: "",
     teacherId: "3B0E6135-B5B0-447B-1349-08DD63FADCF8", // Default teacher ID
-   // classGroupId: null,
     activityName: "",
   };
 
@@ -109,36 +106,50 @@ const CreateActivity = () => {
     defaultValues,
   });
 
-
   const onSubmit = async (data: ActivityFormValues) => {
     setIsSubmitting(true);
+    console.log("Form data before submission:", data);
     
-    // Simulate API call with timeout
     try {
-          // This would be your actual API call to create an activity
-          const response = await fetch("https://localhost:44361/api/activities", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-          });
-          if (!response.ok) {
-            throw new Error("Failed to create activity");
-          }  
-          console.log("Submitting activity:", data);
-     // console.log("Submitting activity:", data);
+      const requestData: CreateActivityRequest = {
+        title: data.title,
+        description: data.description,
+        activityName: data.activityName,
+        dueDate: data.dueDate.toISOString(),
+        classGroupId: data.classGroupId,
+        teacherId: data.teacherId,
+      };
       
-      // Mock successful API response instead of actual fetch
-      // This simulates a successful API call without making a network request
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      if (fileBase64 && fileName) {
+        requestData.pdfFileBase64 = fileBase64;
+        requestData.fileName = fileName;
+        console.log("Including PDF file as base64 string");
+      }
+      
+      console.log("Submitting activity with JSON structure matching C# model");
+      
+      const response = await fetch("https://localhost:44361/api/activities", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestData),
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Server error:", errorText);
+        throw new Error(`Failed to create activity: ${response.status} ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log("API response:", result);
       
       toast.success("Activity created successfully!", {
         description: "Your new activity has been saved.",
         duration: 5000,
       });
       
-      // Navigate back to activities list
       navigate("/activitiespagination");
     } catch (error) {
       console.error("Error creating activity:", error);
@@ -149,12 +160,46 @@ const CreateActivity = () => {
       setIsSubmitting(false);
     }
   };
-  
-
 
   const handleCancel = () => {
     navigate("/activities");
   };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      setFileName(file.name);
+      
+      try {
+        const base64 = await convertFileToBase64(file);
+        setFileBase64(base64);
+        console.log("File converted to base64 successfully:", file.name);
+      } catch (error) {
+        console.error("Error converting file to base64:", error);
+        toast.error("Error processing file", {
+          description: "Please try another file or contact support.",
+        });
+      }
+    }
+  };
+
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          const base64String = reader.result.split(',')[1];
+          resolve(base64String);
+        } else {
+          reject(new Error("Failed to convert file to base64"));
+        }
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   useEffect(() => {
     const fetchClassLevels = async () => {
       setLoading(true);
@@ -165,10 +210,9 @@ const CreateActivity = () => {
         }
         const data = await response.json();
 
-        // Map the response to extract only the classGroupId and className
         const extractedClassLevels = data.map((item: { classGroupId: string; className: string }) => ({
-          id: item.classGroupId, // Bind as value
-          name: item.className,   // Display in dropdown
+          id: item.classGroupId,
+          name: item.className,
         }));
         
         setClassLevels(extractedClassLevels);
@@ -181,7 +225,6 @@ const CreateActivity = () => {
 
     fetchClassLevels();
   }, []);
-
 
   return (
     <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">
@@ -283,23 +326,53 @@ const CreateActivity = () => {
                   />
                 </motion.div>
 
+                <motion.div variants={itemVariants}>
+                  <FormItem>
+                    <FormLabel>Upload PDF File</FormLabel>
+                    <Input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={handleFileChange}
+                      className="h-12"
+                    />
+                    <FormDescription>
+                      Upload your activity document (PDF, DOC, or DOCX format)
+                    </FormDescription>
+                    {selectedFile && (
+                      <p className="text-sm text-green-600 mt-1">
+                        File selected: {selectedFile.name}
+                      </p>
+                    )}
+                  </FormItem>
+                </motion.div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <motion.div variants={itemVariants}>
                     <FormField
                       control={form.control}
-                      name="pdfUrl"
+                      name="classGroupId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>PDF URL</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="https://example.com/document.pdf" 
-                              {...field} 
-                              className="h-12"
-                            />
-                          </FormControl>
+                          <FormLabel>Class Level</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="h-12">
+                                <SelectValue placeholder="Select a class level" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {classLevels.map((level) => (
+                                <SelectItem key={level.id} value={level.id}>
+                                  {level.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormDescription>
-                            Link to assignment document or resources
+                            The grade level for this activity
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -352,43 +425,6 @@ const CreateActivity = () => {
                       )}
                     />
                   </motion.div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <motion.div variants={itemVariants}>
-                    <FormField
-                      control={form.control}
-                      name="classGroupId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Class Level</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="h-12">
-                                <SelectValue placeholder="Select a class level" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {classLevels.map((level) => (
-                                <SelectItem key={level.id} value={level.id}>
-                                  {level.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            The grade level for this activity
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </motion.div>
-
-              
                 </div>
 
                 <div className="pt-6 flex justify-end space-x-4">
