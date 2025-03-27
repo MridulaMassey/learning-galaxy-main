@@ -249,7 +249,7 @@ const StudentDashboard = ({ activities, achievements }) => {
                 ))}
                 
                 <div className="pt-4 text-center">
-                  <a href="/activities" className="text-sm text-primary hover:underline">
+                  <a href="/activitiespagination" className="text-sm text-primary hover:underline">
                     View all activities →
                   </a>
                 </div>

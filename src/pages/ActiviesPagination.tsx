@@ -336,7 +336,7 @@ const ActivitiesPaginated = () => {
                               className="self-end text-primary"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/activity/${activity.id}`);
+                                navigate(`/studentassignmentdetails`);
                               }}
                             >
                               View Details

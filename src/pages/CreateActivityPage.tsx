@@ -97,7 +97,7 @@ const CreateActivity = () => {
     description: "",
     dueDate: undefined,
     classGroupId: "",
-    teacherId: "3B0E6135-B5B0-447B-1349-08DD63FADCF8", // Default teacher ID
+    teacherId: "F7400196-CDEB-49ED-11BA-08DD64CD7D35", // Default teacher ID
     activityName: "",
   };
 
@@ -200,21 +200,54 @@ const CreateActivity = () => {
     });
   };
 
+  // useEffect(() => {
+  //   const fetchClassLevels = async () => {
+  //     setLoading(true);
+  //     try {
+  //       const response = await fetch("https://localhost:44361/api/classgroups");
+  //       if (!response.ok) {
+  //         throw new Error("Failed to fetch class levels");
+  //       }
+  //       const data = await response.json();
+
+  //       const extractedClassLevels = data.map((item: { classGroupId: string; className: string }) => ({
+  //         id: item.classGroupId,
+  //         name: item.className,
+  //       }));
+        
+  //       setClassLevels(extractedClassLevels);
+  //     } catch (error) {
+  //       console.error("Error fetching class levels:", error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchClassLevels();
+  // }, []);
   useEffect(() => {
     const fetchClassLevels = async () => {
       setLoading(true);
       try {
-        const response = await fetch("https://localhost:44361/api/classgroups");
+        const response = await fetch("https://localhost:44361/api/ClassGroupSubject/classgroupslist");
         if (!response.ok) {
           throw new Error("Failed to fetch class levels");
         }
         const data = await response.json();
-
-        const extractedClassLevels = data.map((item: { classGroupId: string; className: string }) => ({
+  
+        const extractedClassLevels = data.map((item: { 
+          classGroupId: string; 
+          classGroupClassName: string;
+          classGroupSubjectId: string;
+          subjectId:string;
+        }) => ({
           id: item.classGroupId,
-          name: item.className,
-        }));
+          name: item.classGroupClassName,
+          subjectId: item.subjectId,
+
         
+        }));
+  
         setClassLevels(extractedClassLevels);
       } catch (error) {
         console.error("Error fetching class levels:", error);
@@ -222,10 +255,9 @@ const CreateActivity = () => {
         setLoading(false);
       }
     };
-
+  
     fetchClassLevels();
   }, []);
-
   return (
     <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">
       <div className="max-w-3xl mx-auto">

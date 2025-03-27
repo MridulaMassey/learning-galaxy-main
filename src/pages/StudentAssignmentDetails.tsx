@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { ArrowLeft, Calendar, User, BookOpen, Award, FileText, Upload, Download, MessageSquare } from "lucide-react";
+import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,7 +36,8 @@ const itemVariants = {
 
 const StudentAssignmentDetails = () => {
   const navigate = useNavigate();
-  const [hasFeedback, setHasFeedback] = useState(true); // For demo purposes, this would normally be false until feedback is given
+  const [course, setCourse] = useState("Loading...");
+  const [hasFeedback, setHasFeedback] = useState(true);
 
   const handleBack = () => {
     navigate(-1);
@@ -47,6 +48,21 @@ const StudentAssignmentDetails = () => {
     console.log("Assignment submission initiated");
     // You could redirect to a submission form or open a modal
   };
+
+  useEffect(() => {
+    const fetchCourse = async () => {
+      try {
+        const response = await fetch("https://api.example.com/course"); // Replace with your API URL
+        const data = await response.json();
+        setCourse(data.courseName || "Unknown Course"); // Ensure valid data
+      } catch (error) {
+        console.error("Error fetching course:", error);
+        setCourse("Failed to load course");
+      }
+    }
+
+    fetchCourse();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">
@@ -69,14 +85,14 @@ const StudentAssignmentDetails = () => {
         >
           <motion.div variants={itemVariants} className="space-y-2">
             <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-medium tracking-tight">JavaScript Basics</h1>
+              <h1 className="text-3xl font-medium tracking-tight">Assignment</h1>
               <Badge variant="outline" className="text-sm px-3 py-1">
                 Web Development
               </Badge>
             </div>
             <div className="flex items-center text-muted-foreground gap-2">
               <BookOpen className="h-4 w-4" />
-              <span>Course: Web Development</span>
+              <span>Course: Web Developmentp</span>
             </div>
           </motion.div>
 
