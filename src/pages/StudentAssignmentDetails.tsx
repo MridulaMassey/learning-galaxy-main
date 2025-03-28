@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, User, BookOpen, Award, FileText, Upload, Download, MessageSquare } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { ArrowLeft, Calendar, User, BookOpen, Award, FileText, Upload, Download, MessageSquare } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { format } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ActivityDetails, Submission } from "@/types/ActivityTypes";
 
 // Animation variants
 const containerVariants = {
@@ -36,33 +40,164 @@ const itemVariants = {
 
 const StudentAssignmentDetails = () => {
   const navigate = useNavigate();
-  const [course, setCourse] = useState("Loading...");
-  const [hasFeedback, setHasFeedback] = useState(true);
+  const { activityId } = useParams<{ activityId: string }>();
+  const [activity, setActivity] = useState<ActivityDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileBase64, setFileBase64] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleBack = () => {
     navigate(-1);
   };
 
-  const handleSubmit = () => {
-    // In a real app, this would handle the submission process
-    console.log("Assignment submission initiated");
-    // You could redirect to a submission form or open a modal
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      
+      try {
+        const base64 = await convertFileToBase64(file);
+        setFileBase64(base64);
+        toast.success("File selected successfully", {
+          description: file.name,
+        });
+      } catch (error) {
+        console.error("Error converting file to base64:", error);
+        toast.error("Error processing file", {
+          description: "Please try another file or contact support.",
+        });
+      }
+    }
+  };
+
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          const base64String = reader.result.split(',')[1];
+          resolve(base64String);
+        } else {
+          reject(new Error("Failed to convert file to base64"));
+        }
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedFile) {
+      toast.error("Please select a file to submit");
+      return;
+    }
+
+    setSubmitting(true);
+    toast.success("Submission initiated", {
+      description: "Your activity is being uploaded...",
+    });
+
+    try {
+      // Here you would implement the actual submission logic
+      // For example:
+      // const response = await fetch(`https://localhost:44361/api/submissions`, {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({
+      //     activityId: activityId,
+      //     studentId: "current-student-id", // You would get this from auth context
+      //     fileBase64: fileBase64,
+      //     fileName: selectedFile.name
+      //   }),
+      // });
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      toast.success("Activity submitted successfully", {
+        description: "Your submission has been received."
+      });
+    } catch (error) {
+      console.error("Error submitting activity:", error);
+      toast.error("Failed to submit activity", {
+        description: "Please try again or contact support.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   useEffect(() => {
-    const fetchCourse = async () => {
+    const fetchActivityDetails = async () => {
+    //  if (!activityId) return;
+      
+      setLoading(true);
       try {
-        const response = await fetch("https://api.example.com/course"); // Replace with your API URL
+        // Replace with your actual API endpoint
+      //  const response = await fetch(`https://localhost:44361/api/activities/${activityId}`);
+      const activityId = "563F760C-7D59-493A-A04A-32703798F913";
+        const response = await fetch(`https://localhost:44361/api/activities/${activityId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch activity details");
+        }
+        
         const data = await response.json();
-        setCourse(data.courseName || "Unknown Course"); // Ensure valid data
+        setActivity({
+          ...data,
+          // Map API response to our interface
+          hasFeedback: !!data.feedback, // Convert to boolean
+        });
       } catch (error) {
-        console.error("Error fetching course:", error);
-        setCourse("Failed to load course");
+        console.error("Error fetching activity details:", error);
+        toast.error("Failed to load activity details", {
+          description: "Please try again later or contact support.",
+        });
+      } finally {
+        setLoading(false);
       }
-    }
+    };
 
-    fetchCourse();
-  }, []);
+    fetchActivityDetails();
+  }, [activityId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <Skeleton className="h-8 w-28" />
+          <Skeleton className="h-10 w-full max-w-md" />
+          <Skeleton className="h-4 w-40" />
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-8 w-52" />
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-24 w-full" />
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (!activity) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <h1 className="text-2xl font-medium mb-2">Activity Not Found</h1>
+          <p className="text-muted-foreground mb-6">The activity you're looking for doesn't exist or has been removed.</p>
+          <Button onClick={handleBack}>
+            Go Back
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">
@@ -84,22 +219,24 @@ const StudentAssignmentDetails = () => {
           className="space-y-8"
         >
           <motion.div variants={itemVariants} className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-medium tracking-tight">Assignment</h1>
-              <Badge variant="outline" className="text-sm px-3 py-1">
-                Web Development
-              </Badge>
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <h1 className="text-3xl font-medium tracking-tight">{activity.activityName}</h1>
+              {activity.subjectName && (
+                <Badge variant="outline" className="text-sm px-3 py-1">
+                  {activity.subjectName}
+                </Badge>
+              )}
             </div>
             <div className="flex items-center text-muted-foreground gap-2">
               <BookOpen className="h-4 w-4" />
-              <span>Course: Web Developmentp</span>
+              <span>Class: {activity.classGroupName || activity.classLevel || "Not specified"}</span>
             </div>
           </motion.div>
 
           <motion.div variants={itemVariants}>
             <Card className="overflow-hidden">
               <CardHeader className="bg-muted/30 pb-4">
-                <CardTitle className="text-xl">Assignment Details</CardTitle>
+                <CardTitle className="text-xl">Activity Details</CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-6">
                 <div className="space-y-4">
@@ -108,7 +245,11 @@ const StudentAssignmentDetails = () => {
                       <Calendar className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium">Due Date</p>
-                        <p className="text-muted-foreground">March 30, 2025</p>
+                        <p className="text-muted-foreground">
+                          {activity.dueDate 
+                            ? format(new Date(activity.dueDate), "MMMM d, yyyy") 
+                            : "No due date specified"}
+                        </p>
                       </div>
                     </div>
                     
@@ -116,7 +257,15 @@ const StudentAssignmentDetails = () => {
                       <User className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium">Assigned By</p>
-                        <p className="text-muted-foreground">Professor John Doe</p>
+                        <p className="text-muted-foreground">{activity.teacherUserFirstName || "Professor"}-{activity.teacherUserLastName || "Professor"}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Award className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Weightage</p>
+                        <p className="text-muted-foreground">{activity.weightagePercent}%</p>
                       </div>
                     </div>
                   </div>
@@ -125,26 +274,18 @@ const StudentAssignmentDetails = () => {
                 <Separator />
                 
                 <div>
-                  <h3 className="text-lg font-medium mb-2">Assignment Description</h3>
+                  <h3 className="text-lg font-medium mb-2">Activity Title</h3>
+                  <p className="font-medium text-lg text-primary mb-4">{activity.title}</p>
+                  
+                  <h3 className="text-lg font-medium mb-2">Activity Description</h3>
                   <p className="text-muted-foreground">
-                    This assignment is designed to help students practice JavaScript fundamentals, including variables, functions, and loops. You will be asked to solve several coding problems to improve your skills in these areas.
+                    {activity.description || "No description provided for this activity."}
                   </p>
                 </div>
 
                 <Separator />
 
-                <div>
-                  <h3 className="text-lg font-medium mb-3">Requirements</h3>
-                  <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
-                    <li>Write 3 different functions to solve coding problems.</li>
-                    <li>Include comments explaining the logic behind your solutions.</li>
-                    <li>Submit the solution through the student portal.</li>
-                  </ul>
-                </div>
-
-                <Separator />
-
-                {hasFeedback && (
+                {activity.hasFeedback && (
                   <>
                     <div className="bg-muted/20 rounded-lg p-4">
                       <div className="flex items-start gap-3">
@@ -152,7 +293,7 @@ const StudentAssignmentDetails = () => {
                         <div>
                           <h3 className="text-lg font-medium mb-1">Teacher Feedback</h3>
                           <p className="text-muted-foreground">
-                            Great work on your solution! Your functions are well-structured and your comments clearly explain the logic. Consider optimizing the second function for better performance in future assignments.
+                            {activity.feedback || "No specific feedback provided yet."}
                           </p>
                         </div>
                       </div>
@@ -162,25 +303,29 @@ const StudentAssignmentDetails = () => {
                 )}
 
                 <div>
-                  <h3 className="text-lg font-medium mb-3">Assignment Files</h3>
+                  <h3 className="text-lg font-medium mb-3">Activity Files</h3>
                   <div className="space-y-4">
-                    <div className="bg-muted/20 rounded-lg p-4">
-                      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Download className="h-5 w-5 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium">Download Assignment PDF</p>
-                            <p className="text-muted-foreground text-sm">Get the assignment instructions</p>
+                    {activity.pdfUrl && (
+                      <div className="bg-muted/20 rounded-lg p-4">
+                        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Download className="h-5 w-5 text-muted-foreground" />
+                            <div>
+                              <p className="font-medium">Download Activity PDF</p>
+                              <p className="text-muted-foreground text-sm">Get the activity instructions</p>
+                            </div>
+                          </div>
+                          <div className="w-full sm:w-auto">
+                            <a href={activity.pdfUrl} target="_blank" rel="noopener noreferrer">
+                              <Button variant="secondary" className="w-full sm:w-auto">
+                                <Download className="mr-2 h-4 w-4" />
+                                Download PDF
+                              </Button>
+                            </a>
                           </div>
                         </div>
-                        <div className="w-full sm:w-auto">
-                          <Button variant="secondary" className="w-full sm:w-auto">
-                            <Download className="mr-2 h-4 w-4" />
-                            Download PDF
-                          </Button>
-                        </div>
                       </div>
-                    </div>
+                    )}
                     
                     <div className="bg-muted/20 rounded-lg p-4">
                       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
@@ -188,32 +333,42 @@ const StudentAssignmentDetails = () => {
                           <Upload className="h-5 w-5 text-muted-foreground" />
                           <div>
                             <p className="font-medium">Upload Your Solution</p>
-                            <p className="text-muted-foreground text-sm">Submit your completed assignment</p>
+                            <p className="text-muted-foreground text-sm">Submit your completed activity</p>
                           </div>
                         </div>
                         <div className="w-full sm:w-auto">
                           <label className="cursor-pointer">
                             <Input 
                               type="file" 
-                              accept=".pdf" 
+                              accept=".pdf,.doc,.docx" 
                               className="hidden"
-                              onChange={(e) => console.log("File selected:", e.target.files?.[0])} 
+                              onChange={handleFileChange} 
                             />
                             <Button variant="secondary" className="w-full sm:w-auto">
                               <Upload className="mr-2 h-4 w-4" />
-                              Choose PDF
+                              Choose File
                             </Button>
                           </label>
                         </div>
                       </div>
+                      {selectedFile && (
+                        <div className="mt-2 text-sm text-green-600">
+                          File selected: {selectedFile.name}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
                 <div className="pt-4 flex justify-center">
-                  <Button size="lg" className="w-full sm:w-auto" onClick={handleSubmit}>
+                  <Button 
+                    size="lg" 
+                    className="w-full sm:w-auto" 
+                    onClick={handleSubmit}
+                    disabled={!selectedFile || submitting}
+                  >
                     <FileText className="mr-2 h-4 w-4" />
-                    Submit Your Assignment
+                    {submitting ? "Submitting..." : "Submit Your Activity"}
                   </Button>
                 </div>
               </CardContent>
