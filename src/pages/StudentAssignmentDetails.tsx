@@ -1,8 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, User, BookOpen, Award, FileText, Upload, Download, MessageSquare } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar,
+  User,
+  BookOpen,
+  Award,
+  FileText,
+  Upload,
+  Download,
+  MessageSquare,
+  X,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ActivityDetails, Submission } from "@/types/ActivityTypes";
+import { ActivityDetails, SubmissionFile } from "@/types/ActivityTypes";
 
 // Animation variants
 const containerVariants = {
@@ -46,20 +57,32 @@ const StudentAssignmentDetails = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileBase64, setFileBase64] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleBack = () => {
     navigate(-1);
   };
-
+ 
+  const handleFileClick = () => {
+    // Programmatically click the hidden file input
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+ 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      if (file.type !== "application/pdf") {
+        toast.error("Please upload a PDF file.");
+        return;
+      }
       setSelectedFile(file);
-      
+
       try {
         const base64 = await convertFileToBase64(file);
         setFileBase64(base64);
-        toast.success("File selected successfully", {
+        toast.success("PDF file selected successfully", {
           description: file.name,
         });
       } catch (error) {
@@ -71,13 +94,21 @@ const StudentAssignmentDetails = () => {
     }
   };
 
+  const removeSelectedFile = () => {
+    setSelectedFile(null);
+    setFileBase64(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const convertFileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = () => {
         if (typeof reader.result === "string") {
-          const base64String = reader.result.split(',')[1];
+          const base64String = reader.result.split(",")[1];
           resolve(base64String);
         } else {
           reject(new Error("Failed to convert file to base64"));
@@ -88,7 +119,7 @@ const StudentAssignmentDetails = () => {
   };
 
   const handleSubmit = async () => {
-    if (!selectedFile) {
+    if (!selectedFile || !fileBase64) {
       toast.error("Please select a file to submit");
       return;
     }
@@ -99,26 +130,30 @@ const StudentAssignmentDetails = () => {
     });
 
     try {
-      // Here you would implement the actual submission logic
-      // For example:
-      // const response = await fetch(`https://localhost:44361/api/submissions`, {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify({
-      //     activityId: activityId,
-      //     studentId: "current-student-id", // You would get this from auth context
-      //     fileBase64: fileBase64,
-      //     fileName: selectedFile.name
-      //   }),
-      // });
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      // Use the activityId from the URL params
+      const currentActivityId = activityId || "563F760C-7D59-493A-A04A-32703798F913";
+      console.log("Submitting activity with ID:", currentActivityId);
+     
+      const response = await fetch(`https://localhost:44361/api/submissions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          activityId: currentActivityId,
+          studentId: "current-student-id", // Replace with your actual student ID retrieval logic
+          fileBase64: fileBase64,
+          fileName: selectedFile.name,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit activity");
+      }
+
+      console.log("Submission successful");
       toast.success("Activity submitted successfully", {
-        description: "Your submission has been received."
+        description: "Your submission has been received.",
       });
     } catch (error) {
       console.error("Error submitting activity:", error);
@@ -132,23 +167,21 @@ const StudentAssignmentDetails = () => {
 
   useEffect(() => {
     const fetchActivityDetails = async () => {
-    //  if (!activityId) return;
-      
       setLoading(true);
       try {
-        // Replace with your actual API endpoint
-      //  const response = await fetch(`https://localhost:44361/api/activities/${activityId}`);
-      const activityId = "563F760C-7D59-493A-A04A-32703798F913";
-        const response = await fetch(`https://localhost:44361/api/activities/${activityId}`);
+        // Use the activityId from the URL params, or fallback to the hardcoded ID
+        const currentActivityId = activityId || "563F760C-7D59-493A-A04A-32703798F913";
+        console.log("Fetching activity details for ID:", currentActivityId);
+       
+        const response = await fetch(`https://localhost:44361/api/activities/${currentActivityId}`);
         if (!response.ok) {
           throw new Error("Failed to fetch activity details");
         }
-        
+
         const data = await response.json();
         setActivity({
           ...data,
-          // Map API response to our interface
-          hasFeedback: !!data.feedback, // Convert to boolean
+          hasFeedback: !!data.feedback,
         });
       } catch (error) {
         console.error("Error fetching activity details:", error);
@@ -190,10 +223,10 @@ const StudentAssignmentDetails = () => {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <h1 className="text-2xl font-medium mb-2">Activity Not Found</h1>
-          <p className="text-muted-foreground mb-6">The activity you're looking for doesn't exist or has been removed.</p>
-          <Button onClick={handleBack}>
-            Go Back
-          </Button>
+          <p className="text-muted-foreground mb-6">
+            The activity you're looking for doesn't exist or has been removed.
+          </p>
+          <Button onClick={handleBack}>Go Back</Button>
         </div>
       </div>
     );
@@ -211,13 +244,8 @@ const StudentAssignmentDetails = () => {
           <ArrowLeft className="h-4 w-4 mr-2 group-hover:translate-x-[-2px] transition-transform" />
           Back
         </Button>
-        
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="space-y-8"
-        >
+
+        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-8">
           <motion.div variants={itemVariants} className="space-y-2">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <h1 className="text-3xl font-medium tracking-tight">{activity.activityName}</h1>
@@ -246,21 +274,24 @@ const StudentAssignmentDetails = () => {
                       <div>
                         <p className="text-sm font-medium">Due Date</p>
                         <p className="text-muted-foreground">
-                          {activity.dueDate 
-                            ? format(new Date(activity.dueDate), "MMMM d, yyyy") 
+                          {activity.dueDate
+                            ? format(new Date(activity.dueDate), "MMMM d, yyyy")
                             : "No due date specified"}
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <User className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium">Assigned By</p>
-                        <p className="text-muted-foreground">{activity.teacherUserFirstName || "Professor"}-{activity.teacherUserLastName || "Professor"}</p>
+                        <p className="text-muted-foreground">
+                          {activity.teacherUserFirstName || "Professor"}-
+                          {activity.teacherUserLastName || "Professor"}
+                        </p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <Award className="h-5 w-5 text-muted-foreground" />
                       <div>
@@ -272,11 +303,11 @@ const StudentAssignmentDetails = () => {
                 </div>
 
                 <Separator />
-                
+
                 <div>
                   <h3 className="text-lg font-medium mb-2">Activity Title</h3>
                   <p className="font-medium text-lg text-primary mb-4">{activity.title}</p>
-                  
+
                   <h3 className="text-lg font-medium mb-2">Activity Description</h3>
                   <p className="text-muted-foreground">
                     {activity.description || "No description provided for this activity."}
@@ -326,7 +357,7 @@ const StudentAssignmentDetails = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     <div className="bg-muted/20 rounded-lg p-4">
                       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -337,23 +368,41 @@ const StudentAssignmentDetails = () => {
                           </div>
                         </div>
                         <div className="w-full sm:w-auto">
-                          <label className="cursor-pointer">
-                            <Input 
-                              type="file" 
-                              accept=".pdf,.doc,.docx" 
-                              className="hidden"
-                              onChange={handleFileChange} 
-                            />
-                            <Button variant="secondary" className="w-full sm:w-auto">
-                              <Upload className="mr-2 h-4 w-4" />
-                              Choose File
-                            </Button>
-                          </label>
+                          {/* Hidden file input */}
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="application/pdf"
+                            className="hidden"
+                            onChange={handleFileChange}
+                            id="pdf-file-input"
+                          />
+                          {/* Visible upload button */}
+                          <Button
+                            variant="secondary"
+                            className="w-full sm:w-auto"
+                            onClick={handleFileClick}
+                            type="button"
+                          >
+                            <Upload className="mr-2 h-4 w-4" />
+                            Choose PDF File
+                          </Button>
                         </div>
                       </div>
                       {selectedFile && (
-                        <div className="mt-2 text-sm text-green-600">
-                          File selected: {selectedFile.name}
+                        <div className="mt-3 flex items-center justify-between bg-muted/30 p-2 px-3 rounded">
+                          <span className="text-sm text-green-600 font-medium">
+                            File selected: {selectedFile.name}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 rounded-full"
+                            onClick={removeSelectedFile}
+                            type="button"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
                       )}
                     </div>
@@ -361,11 +410,12 @@ const StudentAssignmentDetails = () => {
                 </div>
 
                 <div className="pt-4 flex justify-center">
-                  <Button 
-                    size="lg" 
-                    className="w-full sm:w-auto" 
+                  <Button
+                    size="lg"
+                    className="w-full sm:w-auto"
                     onClick={handleSubmit}
-                    disabled={!selectedFile || submitting}
+                    disabled={!selectedFile || submitting || activity.hasFeedback}
+                    type="button"
                   >
                     <FileText className="mr-2 h-4 w-4" />
                     {submitting ? "Submitting..." : "Submit Your Activity"}
