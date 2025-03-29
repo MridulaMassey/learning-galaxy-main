@@ -1,29 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LogOut, Bell } from 'lucide-react'; // Importing Logout & Notification icons
+import { LogOut, Bell, X } from 'lucide-react'; // Importing icons
 
 const Navbar = () => {
   const location = useLocation();
   const [active, setActive] = useState(location.pathname);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const popupRef = useRef(null);
 
   useEffect(() => {
     setActive(location.pathname);
   }, [location.pathname]);
 
-  const navItems = [
-    { name: "Home", icon: "🏠", link: "/dashboard" },
-    { name: "Lessons", icon: "📖", link: "/Resources" },
-    { name: "Activities", icon: "🎨", link: "/Activities" },
-    { name: "Games", icon: "🎮", link: "/Games", newTab: true },
-    { name: "Rewards", icon: "🏆", link: "/rewards" }
+  // Dummy notifications (You can fetch real data from an API or Firebase later)
+  const notifications = [
+    { id: 1, sender: "Teacher", message: "New assignment posted!", time: "2 min ago" },
+    { id: 2, sender: "Student", message: "I submitted my work.", time: "10 min ago" },
+    { id: 3, sender: "Teacher", message: "Reminder: Quiz on Friday!", time: "30 min ago" }
   ];
 
+  // Handle clicking outside the popup to close it
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popupRef.current && !popupRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
-    <nav className="w-full bg-[#de0029] p-4 shadow-md flex items-center justify-between">
+    <nav className="w-full bg-[#de0029] p-4 shadow-md flex items-center justify-between relative">
       
       {/* Left: Logo */}
       <div className="flex items-center">
-           <img 
+        <img 
           src="KH_logo3.png" 
           alt="Logo"
           className="h-16 w-auto object-contain"
@@ -32,7 +46,13 @@ const Navbar = () => {
 
       {/* Center: Navigation Links */}
       <div className="flex space-x-10">
-        {navItems.map((item) => (
+        {[
+          { name: "Home", icon: "🏠", link: "/dashboard" },
+          { name: "Resources", icon: "📖", link: "/Resources" },
+          { name: "Activities", icon: "🎨", link: "/Activities" },
+          { name: "Games", icon: "🎮", link: "/Games"},
+          { name: "Rewards", icon: "🏆", link: "/rewards" }
+        ].map((item) => (
           item.newTab ? (
             <a
               key={item.name}
@@ -62,19 +82,60 @@ const Navbar = () => {
       </div>
 
       {/* Right: Notification & Logout */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-4 relative">
         {/* Notification Icon */}
-        <button className="p-2 rounded-lg hover:bg-red-600 transition-all">
+        <button 
+          onClick={() => setShowNotifications(!showNotifications)}
+          className="p-2 rounded-lg hover:bg-red-600 transition-all relative"
+        >
           <Bell className="h-6 w-6 text-white" />
+          {notifications.length > 0 && (
+            <span className="absolute top-0 right-0 bg-yellow-400 text-black text-xs rounded-full px-2">
+              {notifications.length}
+            </span>
+          )}
         </button>
 
+        {/* Notification Popup */}
+        {showNotifications && (
+          <div ref={popupRef} className="absolute top-12 right-0 w-72 bg-white shadow-lg rounded-lg p-4 z-50">
+            <div className="flex justify-between items-center border-b pb-2">
+              <h3 className="text-md font-bold text-red-600">Notifications</h3>
+              <button onClick={() => setShowNotifications(false)}>
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+
+            <ul className="mt-2 max-h-48 overflow-y-auto">
+              {notifications.length > 0 ? (
+                notifications.map((notification) => (
+                  <li key={notification.id} className="p-2 border-b last:border-none">
+                    <strong>{notification.sender}:</strong> {notification.message}
+                    <p className="text-xs text-gray-500">{notification.time}</p>
+                  </li>
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm">No new notifications</p>
+              )}
+            </ul>
+          </div>
+        )}
+
         {/* Logout Button */}
+
         <button 
+        onClick={() => (window.location.href = "/")} // ✅ Redirects to Main Page
+        className="p-2 rounded-lg hover:bg-red-600 transition-all"
+      >
+        <LogOut className="h-6 w-6 text-white" />
+      </button>
+
+        {/* <button 
           onClick={() => alert("Logging out...")} 
           className="p-2 rounded-lg hover:bg-red-600 transition-all"
         >
           <LogOut className="h-6 w-6 text-white" />
-        </button>
+        </button> */}
       </div>
 
     </nav>

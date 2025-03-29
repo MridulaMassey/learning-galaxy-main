@@ -116,12 +116,27 @@ const LoginForm: React.FC = () => {
                   <Eye className="h-4 w-4" />
                 )}
               </button>
+              {/* <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button> */}
             </div>
           </div>
           
           <Button type="submit" className="w-full rounded-md h-11 mt-6" disabled={isLoading}>
             {isLoading ? 'Logging in...' : 'Login'}
           </Button>
+          {/* <Button type="submit" className="w-full rounded-md h-11 mt-6" disabled={isLoading}>
+            {isLoading ? 'Logging in...' : 'Login'}
+          </Button>
+           */}
         </form>
       </CardContent>
       

@@ -100,7 +100,10 @@ const studentAchievements = [
 
 const Dashboard = ({ userType = "student", userName = "User" }) => {
   return (
-     <div className="flex flex-col min-h-screen bg-[#fadad0]">
+    <div 
+    className="flex flex-col min-h-screen bg-cover bg-center bg-no-repeat"
+    style={{ backgroundImage: "url('/path-to-your-image.jpg')" }}
+  >
     
       <Header isLoggedIn={true} userType={userType} userName={userName} />  
       
@@ -150,10 +153,10 @@ const StudentDashboard = ({ activities, achievements }) => {
       {/* Content Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
        <section className="lg:col-span-2 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <Card className="bg-yellow-100">
+            <Card className="bg-yellow-100 border-4 border-yellow-300 shadow-lg hover:bg-yellow-100 transition-all">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <HandHeart className="h-10 w-10 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-yellow-700">
+                  <HandHeart className="h-10 w-10 text-red-500" />
                   <span>Learn Kindness</span>
                 </CardTitle>
               </CardHeader>
@@ -162,8 +165,7 @@ const StudentDashboard = ({ activities, achievements }) => {
                   {studentActivities.map((activity) => (
                     <div
                       key={activity.id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border bg-muted/40 
-                        hover:bg-yellow-200 transition duration-300 ease-in-out cursor-pointer shadow-md"
+                      className="p-4 rounded-lg border bg-yellow-200 hover:bg-yellow-300 transition-all cursor-pointer shadow-md"
                       onClick={() => navigate(activity.url)} // Navigate using stored URL
                     >
                       <h3 className="text-2xl font-bold text-blue-500 font-comic">
@@ -178,7 +180,7 @@ const StudentDashboard = ({ activities, achievements }) => {
        
         {/* Student Profile*/}
         <section className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          <Card  className="col-span-1 md:col-span-1 p-4 bg-[#66e2ab] rounded-2xl shadow-lg">
+          <Card  className="bg-blue-100 border-4 border-blue-300 shadow-lg hover:bg-blue-200 transition-all">
             
             <CardHeader className="flex flex-col items-center">
       {/* 🖼️ Avatar Image */}
@@ -214,7 +216,7 @@ const StudentDashboard = ({ activities, achievements }) => {
       {/*************/}
 
       <section className="lg:col-span-2 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-  <Card className="bg-orange-300">
+  <Card className="bg-pink-100 border-4 border-pink-300 shadow-lg hover:bg-pink-200 transition-all">
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
         {/* <HandHeart className="h-10 w-10 text-primary" />
@@ -229,7 +231,7 @@ const StudentDashboard = ({ activities, achievements }) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           
           {/* 📝 Upcoming Tasks */}
-          <Card className="col-span-1 p-1 bg-green-200 rounded-2xl shadow-lg">
+          <Card className="p-2 bg-green-200 rounded-2xl shadow-lg hover:bg-green-300 transition-all">
             <div className="absolute top-0 h-1 w-full bg-primary" />
             <CardHeader className="pb-1">
               <h3 className="text-lg font-bold mb-1">Upcoming Tasks</h3>
@@ -243,7 +245,7 @@ const StudentDashboard = ({ activities, achievements }) => {
           </Card>
 
           {/* 🏆 Recent Feedback */}
-          <Card className="col-span-1 p-1 bg-green-200 rounded-2xl shadow-lg">
+          <Card className="p-2 bg-orange-200 rounded-2xl shadow-lg hover:bg-orange-300 transition-all">
             <div className="absolute top-0 h-1 w-full bg-secondary" />
             <CardHeader className="pb-1">
             
@@ -261,7 +263,7 @@ const StudentDashboard = ({ activities, achievements }) => {
           </Card>
 
           {/* 📊 Overall Progress */}
-          <Card className="col-span-1 p-1 bg-green-200 rounded-2xl shadow-lg">
+          <Card className="p-2 bg-blue-200 rounded-2xl shadow-lg hover:bg-blue-300 transition-all">
             <div className="absolute top-0 h-1 w-full bg-accent" />
             <CardHeader className="pb-1">
               <CardTitle>
@@ -293,7 +295,7 @@ const StudentDashboard = ({ activities, achievements }) => {
 
         {/* Achievements Section */}
         <section className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          <Card  className="bg-green-100">
+          <Card  className="bg-green-100 border-4 border-green-300 shadow-lg hover:bg-green-200 transition-all">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Sparkles  className="h-10 w-10 text-primary" />
@@ -308,7 +310,7 @@ const StudentDashboard = ({ activities, achievements }) => {
                 {achievements.map((achievement) => (
                   <div
                     key={achievement.id}
-                    className="flex items-center gap-4 p-4 rounded-lg border bg-muted/40"
+                    className="flex items-center gap-4 p-4 rounded-lg border bg-muted/40 bg-green-200 hover:bg-green-400 transition-all cursor-pointer shadow-md"
                   >
                     <div className="h-12 w-12 flex items-center justify-center rounded-full bg-background">
                       {achievement.icon}
@@ -582,57 +584,7 @@ const TeacherDashboard = ({ assignments, messages }) => {
           </Card>
         </section>
       </div>
-      
-      {/* Quick Actions
-      <section className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
-        <h2 className="text-lg font-medium mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-          <Card className="card-hover">
-            <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                <Book className="h-5 w-5 text-primary" />
-              </div>
-              <p className="text-sm font-medium">Create Assignment</p>
-            </CardContent>
-          </Card>
           
-          <Card className="card-hover">
-            <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                <ChartBar className="h-5 w-5 text-primary" />
-              </div>
-              <p className="text-sm font-medium">Grade Submissions</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="card-hover">
-            <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                <MessageSquare className="h-5 w-5 text-primary" />
-              </div>
-              <p className="text-sm font-medium">Send Message</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="card-hover">
-            <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                <Calendar className="h-5 w-5 text-primary" />
-              </div>
-              <p className="text-sm font-medium">Schedule</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="card-hover">
-            <CardContent className="p-4 flex flex-col items-center text-center">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                <Settings className="h-5 w-5 text-primary" />
-              </div>
-              <p className="text-sm font-medium">Settings</p>
-            </CardContent>
-          </Card>
-        </div>
-      </section>*/}
     </>
   );
 }; 
