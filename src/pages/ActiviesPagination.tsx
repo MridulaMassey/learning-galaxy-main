@@ -87,9 +87,9 @@ const ActivitiesPaginated = () => {
     // Apply search filter
     if (searchQuery) {
       result = result.filter(activity => 
-        activity.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        activity.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        activity.description.toLowerCase().includes(searchQuery.toLowerCase())
+        activity.title.toLowerCase().includes(searchQuery.toLowerCase()) 
+        // activity.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        // activity.description.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
