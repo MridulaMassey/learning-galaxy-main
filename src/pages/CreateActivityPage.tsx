@@ -5,8 +5,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
 import { ArrowLeft, Calendar, Save, X } from "lucide-react";
+import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -34,7 +34,33 @@ import {
 } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { CreateActivityRequest } from "./CreateActivityRequest";
+
+// Define the proper interface for class groups from API
+interface ClassGroup {
+  id: string;
+  name: string;
+  subjectId: string;
+  subjectName: string;
+}
+
+// Define the interface for subject data
+interface Subject {
+  id: string;
+  name: string;
+}
+
+// Define the interface for the CreateActivityRequest
+interface CreateActivityRequest {
+  title: string;
+  description: string;
+  activityName: string;
+  dueDate: string;
+  classGroupId: string;
+  teacherId: string;
+  subjectId?: string;
+  pdfFileBase64?: string;
+  fileName?: string;
+}
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -78,19 +104,35 @@ const activityFormSchema = z.object({
     .string()
     .min(2, { message: "Activity name must be at least 2 characters long" })
     .max(50, { message: "Activity name must be less than 50 characters" }),
+  subjectId: z.string().optional(), // Added subject ID field
 });
 
 type ActivityFormValues = z.infer<typeof activityFormSchema>;
 
 const CreateActivity = () => {
-  const [classLevels, setClassLevels] = useState<{ id: string; name: string }[]>([]);
-  const [newClassLevel, setNewClassLevel] = useState("");
+  const [classLevels, setClassLevels] = useState<ClassGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileBase64, setFileBase64] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+
+  // Create a set of unique subject IDs for the subject dropdown
+  const uniqueSubjects = React.useMemo(() => {
+    const subjectMap = new Map<string, Subject>();
+    
+    classLevels.forEach(level => {
+      if (!subjectMap.has(level.subjectId)) {
+        subjectMap.set(level.subjectId, {
+          id: level.subjectId,
+          name: level.subjectName
+        });
+      }
+    });
+    
+    return Array.from(subjectMap.values());
+  }, [classLevels]);
 
   const defaultValues: Partial<ActivityFormValues> = {
     title: "",
@@ -99,6 +141,7 @@ const CreateActivity = () => {
     classGroupId: "",
     teacherId: "F7400196-CDEB-49ED-11BA-08DD64CD7D35", // Default teacher ID
     activityName: "",
+    subjectId: "", // Default empty subject ID
   };
 
   const form = useForm<ActivityFormValues>({
@@ -119,6 +162,11 @@ const CreateActivity = () => {
         classGroupId: data.classGroupId,
         teacherId: data.teacherId,
       };
+      
+      // Add subject ID to request if selected
+      if (data.subjectId) {
+        requestData.subjectId = data.subjectId;
+      }
       
       if (fileBase64 && fileName) {
         requestData.pdfFileBase64 = fileBase64;
@@ -200,57 +248,38 @@ const CreateActivity = () => {
     });
   };
 
-  // useEffect(() => {
-  //   const fetchClassLevels = async () => {
-  //     setLoading(true);
-  //     try {
-  //       const response = await fetch("https://localhost:44361/api/classgroups");
-  //       if (!response.ok) {
-  //         throw new Error("Failed to fetch class levels");
-  //       }
-  //       const data = await response.json();
-
-  //       const extractedClassLevels = data.map((item: { classGroupId: string; className: string }) => ({
-  //         id: item.classGroupId,
-  //         name: item.className,
-  //       }));
-        
-  //       setClassLevels(extractedClassLevels);
-  //     } catch (error) {
-  //       console.error("Error fetching class levels:", error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchClassLevels();
-  // }, []);
   useEffect(() => {
     const fetchClassLevels = async () => {
       setLoading(true);
       try {
+        // Fetch class groups with subject information
         const response = await fetch("https://localhost:44361/api/ClassGroupSubject/classgroupslist");
         if (!response.ok) {
           throw new Error("Failed to fetch class levels");
         }
         const data = await response.json();
   
+        // Map all fields from the API response
         const extractedClassLevels = data.map((item: { 
+          classGroupSubjectId: string;
           classGroupId: string; 
           classGroupClassName: string;
-          classGroupSubjectId: string;
-          subjectId:string;
+          subjectId: string;
+          subjectSubjectName: string;
         }) => ({
           id: item.classGroupId,
           name: item.classGroupClassName,
           subjectId: item.subjectId,
-
-        
+          subjectName: item.subjectSubjectName
         }));
   
+        console.log("Mapped class levels with subject names:", extractedClassLevels);
         setClassLevels(extractedClassLevels);
       } catch (error) {
         console.error("Error fetching class levels:", error);
+        toast.error("Failed to load class levels", {
+          description: "Please refresh the page or try again later.",
+        });
       } finally {
         setLoading(false);
       }
@@ -258,6 +287,7 @@ const CreateActivity = () => {
   
     fetchClassLevels();
   }, []);
+
   return (
     <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">
       <div className="max-w-3xl mx-auto">
@@ -397,7 +427,10 @@ const CreateActivity = () => {
                             </FormControl>
                             <SelectContent>
                               {classLevels.map((level) => (
-                                <SelectItem key={level.id} value={level.id}>
+                                <SelectItem 
+                                  key={level.id} 
+                                  value={level.id}
+                                >
                                   {level.name}
                                 </SelectItem>
                               ))}
@@ -458,6 +491,43 @@ const CreateActivity = () => {
                     />
                   </motion.div>
                 </div>
+
+                {/* Subject Dropdown */}
+                <motion.div variants={itemVariants}>
+                  <FormField
+                    control={form.control}
+                    name="subjectId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Subject</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-12">
+                              <SelectValue placeholder="Select a subject" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {uniqueSubjects.map((subject) => (
+                              <SelectItem 
+                                key={subject.id} 
+                                value={subject.id}
+                              >
+                                {subject.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          The subject for this activity
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </motion.div>
 
                 <div className="pt-6 flex justify-end space-x-4">
                   <Button 
