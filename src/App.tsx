@@ -40,7 +40,7 @@ const App = () => (
           <Route path="/activities/create" element={<CreateActivity />} />
           <Route path="/logout" element={<Navigate to="/" />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="/studentassignmentdetails" element={<StudentAssignmentDetails />} />
+          <Route path="/studentassignmentdetails/:activityId" element={<StudentAssignmentDetails />} />
           <Route path="*" element={<NotFound />} />s
         </Routes>
       </BrowserRouter>

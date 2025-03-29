@@ -134,8 +134,8 @@ const StudentAssignmentDetails = () => {
       const currentActivityId = activityId || "563F760C-7D59-493A-A04A-32703798F913";
       console.log("Submitting activity with ID:", currentActivityId);
      
-      const response = await fetch(`https://localhost:44361/api/submissions`, {
-        method: "POST",
+      const response = await fetch(`https://localhost:44361/api/activities/${currentActivityId}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -173,7 +173,7 @@ const StudentAssignmentDetails = () => {
         const currentActivityId = activityId || "563F760C-7D59-493A-A04A-32703798F913";
         console.log("Fetching activity details for ID:", currentActivityId);
        
-        const response = await fetch(`https://localhost:44361/api/activities/${currentActivityId}`);
+        const response = await fetch(`https://localhost:44361/api/activities/activitychanges/${currentActivityId}`);
         if (!response.ok) {
           throw new Error("Failed to fetch activity details");
         }
