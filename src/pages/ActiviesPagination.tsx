@@ -64,7 +64,10 @@ const ActivitiesPaginated = () => {
     const fetchActivities = async () => {
       setLoading(true);
       try {
+        
         const data = await activityService.getActivities();
+        console.log("the data from actvityservice is " + data);
+        
         setActivities(data);
         setFilteredActivities(data);
       } catch (error) {
@@ -281,7 +284,8 @@ const ActivitiesPaginated = () => {
                     <Card
                       key={activity.id}
                       className="activity-card overflow-hidden hover:border-primary/40 transition-all duration-300"
-                      onClick={() => navigate(`/activity/${activity.id}`)}
+                      //navigate(`/studentassignmentdetails/${activity.id}`);
+                      onClick={() => navigate(`/studentassignmentdetails/${activity.activityId}`)}
                     >
                       <CardContent className="p-6 grid gap-4">
                         <div className="flex flex-col">
@@ -336,7 +340,7 @@ const ActivitiesPaginated = () => {
                               className="self-end text-primary"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/studentassignmentdetails`);
+                                navigate(`/studentassignmentdetails/${activity.activityId}`);
                               }}
                             >
                               View Details

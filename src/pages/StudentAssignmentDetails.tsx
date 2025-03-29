@@ -155,6 +155,7 @@ const StudentAssignmentDetails = () => {
       toast.success("Activity submitted successfully", {
         description: "Your submission has been received.",
       });
+      navigate("/activitiespagination");
     } catch (error) {
       console.error("Error submitting activity:", error);
       toast.error("Failed to submit activity", {

@@ -15,6 +15,7 @@ export interface Activity {
   feedback?: string | null;
   grade?: number | null;
   attachments?: Attachment[];
+  activityId:string;
 }
 
 export interface Resource {
@@ -42,6 +43,7 @@ export class ActivityService {
   async getActivities(): Promise<Activity[]> {
     try {
       const response = await fetch(`${this.baseUrl}/activities/activitieslist`);
+      console.log("activity service"+response);
       if (!response.ok) {
         throw new Error("Failed to fetch activities");
       }
