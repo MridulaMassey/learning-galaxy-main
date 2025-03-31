@@ -436,8 +436,18 @@ const CreateActivity = () => {
                         <FormItem>
                           <FormLabel>Class Level</FormLabel>
                           <Select 
-                            onValueChange={handleClassGroupChange}
-                            defaultValue={field.value}
+                            onValueChange={(value) => {
+                              // Only set the values if it's a valid selection (not placeholder)
+                              if (value && value !== "placeholder") {
+                                handleClassGroupChange(value);
+                              } else {
+                                // If placeholder is selected, clear the values
+                                setSelectedClassGroupId("");
+                                form.setValue("classGroupId", "");
+                                form.setValue("subjectId", "");
+                              }
+                            }} 
+                            value={field.value || "placeholder"}
                           >
                             <FormControl>
                               <SelectTrigger className="h-12">
@@ -445,6 +455,7 @@ const CreateActivity = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                              <SelectItem value="placeholder" disabled>Select a class level</SelectItem>
                               {classLevels
                                 .filter((level, index, self) => 
                                   index === self.findIndex(l => l.id === level.id)
@@ -461,7 +472,7 @@ const CreateActivity = () => {
                             </SelectContent>
                           </Select>
                           <FormDescription>
-                            The grade level for this activity
+                            Select a class level for this activity
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -526,7 +537,7 @@ const CreateActivity = () => {
                         <FormLabel>Subject</FormLabel>
                         <Select 
                           onValueChange={field.onChange} 
-                          defaultValue={field.value}
+                          value={field.value || "placeholder"}
                           disabled={!selectedClassGroupId}
                         >
                           <FormControl>
@@ -535,6 +546,9 @@ const CreateActivity = () => {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
+                            <SelectItem value="placeholder" disabled>
+                              {selectedClassGroupId ? "Select a subject" : "First select a class level"}
+                            </SelectItem>
                             {availableSubjects.length > 0 ? (
                               availableSubjects.map((subject) => (
                                 <SelectItem 
@@ -545,9 +559,11 @@ const CreateActivity = () => {
                                 </SelectItem>
                               ))
                             ) : (
-                              <SelectItem value="none" disabled>
-                                No subjects available for this class
-                              </SelectItem>
+                              selectedClassGroupId && (
+                                <SelectItem value="none" disabled>
+                                  No subjects available for this class
+                                </SelectItem>
+                              )
                             )}
                           </SelectContent>
                         </Select>
