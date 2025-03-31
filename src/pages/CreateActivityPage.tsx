@@ -39,6 +39,7 @@ import { cn } from "@/lib/utils";
 interface ClassGroup {
   id: string;
   name: string;
+  classGroupSubjectId: string;
   subjectId: string;
   subjectName: string;
 }
@@ -117,22 +118,32 @@ const CreateActivity = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileBase64, setFileBase64] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [selectedClassGroupId, setSelectedClassGroupId] = useState<string>("");
 
-  // Create a set of unique subject IDs for the subject dropdown
-  const uniqueSubjects = React.useMemo(() => {
-    const subjectMap = new Map<string, Subject>();
+  // Filter subjects based on the selected class group ID
+  const availableSubjects = React.useMemo(() => {
+    if (!selectedClassGroupId) {
+      return [];
+    }
     
-    classLevels.forEach(level => {
-      if (!subjectMap.has(level.subjectId)) {
-        subjectMap.set(level.subjectId, {
-          id: level.subjectId,
-          name: level.subjectName
-        });
+    // Filter for subjects that are associated with the selected class group
+    const subjects = classLevels
+      .filter(level => level.id === selectedClassGroupId)
+      .map(level => ({
+        id: level.subjectId,
+        name: level.subjectName
+      }));
+    
+    // Remove duplicates by creating a Map using subjectId as key
+    const subjectMap = new Map<string, Subject>();
+    subjects.forEach(subject => {
+      if (!subjectMap.has(subject.id)) {
+        subjectMap.set(subject.id, subject);
       }
     });
     
     return Array.from(subjectMap.values());
-  }, [classLevels]);
+  }, [selectedClassGroupId, classLevels]);
 
   const defaultValues: Partial<ActivityFormValues> = {
     title: "",
@@ -148,6 +159,13 @@ const CreateActivity = () => {
     resolver: zodResolver(activityFormSchema),
     defaultValues,
   });
+
+  // Reset the subject field when the class group changes
+  const handleClassGroupChange = (value: string) => {
+    setSelectedClassGroupId(value);
+    form.setValue("classGroupId", value);
+    form.setValue("subjectId", ""); // Reset subject when class group changes
+  };
 
   const onSubmit = async (data: ActivityFormValues) => {
     setIsSubmitting(true);
@@ -269,6 +287,7 @@ const CreateActivity = () => {
         }) => ({
           id: item.classGroupId,
           name: item.classGroupClassName,
+          classGroupSubjectId: item.classGroupSubjectId,
           subjectId: item.subjectId,
           subjectName: item.subjectSubjectName
         }));
@@ -417,7 +436,7 @@ const CreateActivity = () => {
                         <FormItem>
                           <FormLabel>Class Level</FormLabel>
                           <Select 
-                            onValueChange={field.onChange} 
+                            onValueChange={handleClassGroupChange}
                             defaultValue={field.value}
                           >
                             <FormControl>
@@ -426,14 +445,19 @@ const CreateActivity = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {classLevels.map((level) => (
-                                <SelectItem 
-                                  key={level.id} 
-                                  value={level.id}
-                                >
-                                  {level.name}
-                                </SelectItem>
-                              ))}
+                              {classLevels
+                                .filter((level, index, self) => 
+                                  index === self.findIndex(l => l.id === level.id)
+                                )
+                                .map((level) => (
+                                  <SelectItem 
+                                    key={level.id} 
+                                    value={level.id}
+                                  >
+                                    {level.name}
+                                  </SelectItem>
+                                ))
+                              }
                             </SelectContent>
                           </Select>
                           <FormDescription>
@@ -492,7 +516,7 @@ const CreateActivity = () => {
                   </motion.div>
                 </div>
 
-                {/* Subject Dropdown */}
+                {/* Subject Dropdown - Filtered by selected class */}
                 <motion.div variants={itemVariants}>
                   <FormField
                     control={form.control}
@@ -503,25 +527,34 @@ const CreateActivity = () => {
                         <Select 
                           onValueChange={field.onChange} 
                           defaultValue={field.value}
+                          disabled={!selectedClassGroupId}
                         >
                           <FormControl>
                             <SelectTrigger className="h-12">
-                              <SelectValue placeholder="Select a subject" />
+                              <SelectValue placeholder={selectedClassGroupId ? "Select a subject" : "First select a class level"} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {uniqueSubjects.map((subject) => (
-                              <SelectItem 
-                                key={subject.id} 
-                                value={subject.id}
-                              >
-                                {subject.name}
+                            {availableSubjects.length > 0 ? (
+                              availableSubjects.map((subject) => (
+                                <SelectItem 
+                                  key={subject.id} 
+                                  value={subject.id}
+                                >
+                                  {subject.name}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="none" disabled>
+                                No subjects available for this class
                               </SelectItem>
-                            ))}
+                            )}
                           </SelectContent>
                         </Select>
                         <FormDescription>
-                          The subject for this activity
+                          {selectedClassGroupId 
+                            ? "Select a subject for this activity" 
+                            : "Please select a class level first"}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
