@@ -14,6 +14,7 @@ import ActivitiesPaginated from "./pages/ActiviesPagination";
 import CreateActivity from "./pages/CreateActivityPage";
 import StudentAssignmentDetails from "./pages/StudentAssignmentDetails";
 import ClassGroupSubjectActivity from "./pages/ClassGroupSubjectActivity";
+import TeacherAssignmentDetails from "./pages/TeacherAssignmentDetails";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
           
           <Route path="/activities/create" element={<CreateActivity />} />
           <Route path="/logout" element={<Navigate to="/" />} />
+          <Route path="/teacherassignmentdetails/:activityId" element={<TeacherAssignmentDetails />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="/studentassignmentdetails/:activityId" element={<StudentAssignmentDetails />} />
           <Route path="*" element={<NotFound />} />s
