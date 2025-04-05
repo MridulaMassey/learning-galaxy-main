@@ -237,6 +237,7 @@ const TeacherAssignmentDetails = () => {
   const studentName = activity.studentUserFirstName && activity.studentUserLastName 
     ? `${activity.studentUserFirstName} ${activity.studentUserLastName}`
     : "Student";
+  const hasStudentSubmission = !!activity.studentPdfUrl;
 
   return (
     <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">
@@ -439,6 +440,7 @@ const TeacherAssignmentDetails = () => {
                           value={feedback}
                           onChange={handleFeedbackChange}
                           className="resize-none"
+                          disabled={!hasStudentSubmission}
                         />
                       </div>
                       <div>
@@ -451,6 +453,7 @@ const TeacherAssignmentDetails = () => {
                           placeholder="0-100"
                           value={grade}
                           onChange={handleGradeChange}
+                          disabled={!hasStudentSubmission}
                         />
                         {activity.grade !== undefined && (
                           <p className="text-xs text-muted-foreground mt-1">
@@ -463,12 +466,17 @@ const TeacherAssignmentDetails = () => {
                     <div className="flex justify-end">
                       <Button 
                         onClick={handleSubmitFeedback} 
-                        disabled={submitting || (!feedback.trim() && !grade)}
+                        disabled={submitting || (!feedback.trim() && !grade) || !hasStudentSubmission}
                         className="gap-2"
                       >
                         <Save className="h-4 w-4" />
                         {activity.hasFeedback ? "Update Feedback" : "Submit Feedback"}
                       </Button>
+                      {!hasStudentSubmission && (
+                        <p className="text-xs text-muted-foreground absolute mt-10">
+                          Feedback can only be provided after student submission
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
