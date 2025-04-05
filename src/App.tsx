@@ -13,6 +13,7 @@ import { Activity } from "lucide-react";
 import ActivitiesPaginated from "./pages/ActiviesPagination";
 import CreateActivity from "./pages/CreateActivityPage";
 import StudentAssignmentDetails from "./pages/StudentAssignmentDetails";
+import ClassGroupSubjectActivity from "./pages/ClassGroupSubjectActivity";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,8 @@ const App = () => (
           <Route path="/activities" element={<ActivitiesPaginated />} />
           <Route path="/activity" element={<Activity />} />
           <Route path="/activitiespagination" element={<ActivitiesPaginated />} />
+          <Route path="/classgroupsubject" element={<ClassGroupSubjectActivity />} />
+          
           <Route path="/activities/create" element={<CreateActivity />} />
           <Route path="/logout" element={<Navigate to="/" />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
