@@ -15,6 +15,7 @@ import CreateActivity from "./pages/CreateActivityPage";
 import StudentAssignmentDetails from "./pages/StudentAssignmentDetails";
 import ClassGroupSubjectActivity from "./pages/ClassGroupSubjectActivity";
 import TeacherAssignmentDetails from "./pages/TeacherAssignmentDetails";
+import ActivityGroupView from "./pages/ActivityGroupView";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,8 @@ const App = () => (
           <Route path="/activity" element={<Activity />} />
           <Route path="/activitiespagination" element={<ActivitiesPaginated />} />
           <Route path="/classgroupsubject" element={<ClassGroupSubjectActivity />} />
+          <Route path="/activitygroupview" element={<ActivityGroupView />} />
+          
           
           <Route path="/activities/create" element={<CreateActivity />} />
           <Route path="/logout" element={<Navigate to="/" />} />

@@ -117,10 +117,10 @@ const TeacherAssignmentDetails = () => {
 
     setSubmitting(true);
     toast.success("Submitting feedback...");
-
+// https://localhost:44361/api/activities/${currentActivityId}
     try {
-      const response = await fetch(`https://localhost:44361/api/activities/${activityId}`, {
-        method: "POST",
+      const response = await fetch(`https://localhost:44361/api/activities/teachersubmission`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -128,6 +128,7 @@ const TeacherAssignmentDetails = () => {
           activityId: activityId,
           feedback: feedback.trim(),
           grade: grade ? parseFloat(grade) : null,
+          
         }),
       });
 
@@ -147,6 +148,7 @@ const TeacherAssignmentDetails = () => {
           hasFeedback: true,
         });
       }
+      navigate("/classgroupsubject");
     } catch (error) {
       console.error("Error submitting feedback:", error);
       toast.error("Failed to submit feedback", {
