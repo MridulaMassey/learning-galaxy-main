@@ -66,6 +66,7 @@ const StudentAssignmentDetails = () => {
   const handleFileClick = () => {
     // Programmatically click the hidden file input
     if (fileInputRef.current) {
+   
       fileInputRef.current.click();
     }
   };

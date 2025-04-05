@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -29,6 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Pagination, 
   PaginationContent, 
@@ -48,14 +48,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-//import { activityService } from './ActivityService';
-//import {ClassGroupActivity} from './p'
-import  {classGroupActivityService,ClassGroupActivity} from './ClassGroupActivityService';
+import { classGroupActivityService } from './ClassGroupActivityService';
 
 const ClassGroupSubjectActivity = () => {
   const navigate = useNavigate();
-  const [activities, setActivities] = useState<ClassGroupActivity[]>([]);
-  const [filteredActivities, setFilteredActivities] = useState<ClassGroupActivity[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
+  const [filteredActivities, setFilteredActivities] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [classFilter, setClassFilter] = useState('all');
   const [subjectFilter, setSubjectFilter] = useState('all');
@@ -74,8 +72,8 @@ const ClassGroupSubjectActivity = () => {
         setActivities(data);
         setFilteredActivities(data);
       } catch (error) {
-        console.error("Failed to fetch class group activities:", error);
-        toast.error("Failed to load class group activities");
+        console.error("Failed to fetch activities:", error);
+        toast.error("Failed to load activities");
       } finally {
         setLoading(false);
       }
@@ -87,88 +85,104 @@ const ClassGroupSubjectActivity = () => {
   useEffect(() => {
     let result = activities;
 
-    // Apply search filter
     if (searchQuery) {
       result = result.filter(activity => 
-        activity.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        activity.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        activity.description.toLowerCase().includes(searchQuery.toLowerCase())
+        (activity.title?.toLowerCase().includes(searchQuery.toLowerCase()) || '') ||
+        (activity.studentName?.toLowerCase().includes(searchQuery.toLowerCase()) || '') ||
+        (activity.userName?.toLowerCase().includes(searchQuery.toLowerCase()) || '') ||
+        (activity.description?.toLowerCase().includes(searchQuery.toLowerCase()) || '')
       );
     }
 
-    // Apply class filter
     if (classFilter !== 'all') {
-      result = result.filter(activity => activity.class === classFilter);
+      result = result.filter(activity => 
+        activity.class === classFilter || 
+        activity.className === classFilter || 
+        activity.classGroup?.className === classFilter
+      );
     }
 
-    // Apply subject filter
     if (subjectFilter !== 'all') {
-      result = result.filter(activity => activity.subject === subjectFilter);
+      result = result.filter(activity => 
+        activity.subject === subjectFilter ||
+        activity.subjectName === subjectFilter ||
+        activity.subjectId === subjectFilter
+      );
     }
 
-    // Apply status filter
     if (statusFilter !== 'all') {
       result = result.filter(activity => activity.status === statusFilter);
     }
 
     setFilteredActivities(result);
-    setCurrentPage(1); // Reset to first page on filter change
+    setCurrentPage(1);
   }, [activities, searchQuery, classFilter, subjectFilter, statusFilter]);
 
-  // Extract unique classes for the filter
-  const classes = ['all', ...new Set(activities.map(activity => activity.class))];
+  const classes = ['all', ...new Set(activities
+    .map(activity => activity.class || activity.className || 
+    (activity.classGroup && activity.classGroup.className) || 'Unknown')
+    .filter(Boolean))];
   
-  // Extract unique subjects for the filter
-  const subjects = ['all', ...new Set(activities.map(activity => activity.subject))];
+  const subjects = ['all', ...new Set(activities
+    .map(activity => activity.subject || activity.subjectName || 'Unknown')
+    .filter(Boolean))];
 
-  // Calculate pagination
   const totalPages = Math.ceil(filteredActivities.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedActivities = filteredActivities.slice(startIndex, startIndex + itemsPerPage);
   
-  // Render loading skeleton
   const renderSkeleton = () => {
     return Array(5).fill(null).map((_, index) => (
-      <div key={index} className="activity-card animate-pulse shimmer p-6 grid gap-4">
-        <div className="flex flex-col gap-2">
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-        </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
-          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+      <div key={index} className="bg-background border rounded-md p-6">
+        <div className="flex flex-col space-y-3">
+          <div className="flex justify-between">
+            <Skeleton className="h-6 w-1/3" />
+            <Skeleton className="h-6 w-24" />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Skeleton className="h-4 w-1/4" />
+            <Skeleton className="h-4 w-1/4" />
+            <Skeleton className="h-4 w-1/4" />
+          </div>
+          <Skeleton className="h-4 w-full" />
+          <div className="flex justify-between items-center pt-2">
+            <Skeleton className="h-4 w-24" />
+            <div className="flex gap-2">
+              <Skeleton className="h-8 w-8 rounded-md" />
+              <Skeleton className="h-8 w-24 rounded-md" />
+            </div>
+          </div>
         </div>
       </div>
     ));
   };
 
-  // Get status badge class
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Pending':
         return (
-          <Badge variant="outline" className="status-badge status-badge-pending">
+          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
             <Clock className="h-3 w-3 mr-1" />
             Pending
           </Badge>
         );
       case 'Submitted':
         return (
-          <Badge variant="outline" className="status-badge status-badge-submitted">
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
             <Check className="h-3 w-3 mr-1" />
             Submitted
           </Badge>
         );
       case 'Graded':
         return (
-          <Badge variant="outline" className="status-badge status-badge-graded">
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
             <Star className="h-3 w-3 mr-1" />
             Graded
           </Badge>
         );
       case 'Overdue':
         return (
-          <Badge variant="outline" className="status-badge status-badge-overdue">
+          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
             <AlertCircle className="h-3 w-3 mr-1" />
             Overdue
           </Badge>
@@ -178,18 +192,52 @@ const ClassGroupSubjectActivity = () => {
     }
   };
 
-  // Format date
   const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+    if (!dateString || dateString === 'Invalid Date') return 'Invalid Date';
+    
+    try {
+      const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+      return new Date(dateString).toLocaleDateString('en-US', options);
+    } catch (error) {
+      console.error("Invalid date format:", error);
+      return 'Invalid Date';
+    }
   };
 
-  // Handle activity deletion
-  const handleDeleteActivity = async (activityId: number, e: React.MouseEvent) => {
+  const getValue = (activity: any, keys: string[], defaultValue: string = 'N/A') => {
+    for (const key of keys) {
+      if (key.includes('.')) {
+        const parts = key.split('.');
+        let value = activity;
+        let valid = true;
+        
+        for (const part of parts) {
+          if (value && value[part] !== undefined) {
+            value = value[part];
+          } else {
+            valid = false;
+            break;
+          }
+        }
+        
+        if (valid && value !== null && value !== undefined) {
+          return value;
+        }
+      } 
+      else if (activity[key] !== undefined && activity[key] !== null) {
+        return activity[key];
+      }
+    }
+    return defaultValue;
+  };
+
+  const handleDeleteActivity = async (activityId: any, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      // In a real app you would call an API to delete the activity
-      setActivities(activities.filter(activity => activity.id !== activityId));
+      setActivities(activities.filter(activity => 
+        activity.id !== activityId && 
+        activity.activityId !== activityId
+      ));
       toast.success("Activity deleted successfully");
     } catch (error) {
       console.error("Failed to delete activity:", error);
@@ -201,184 +249,190 @@ const ClassGroupSubjectActivity = () => {
     <div className="flex flex-col min-h-screen">
       <Header isLoggedIn={true} userType="teacher" userName="Teacher" />
       
-      <main className="flex-1 py-8 animate-page-in">
+      <main className="flex-1 py-8">
         <div className="container px-4 md:px-6 max-w-7xl mx-auto">
           <section className="mb-6">
-            <div className="glass-panel rounded-2xl p-6 md:p-8">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-3xl font-bold tracking-tighter">
-                    <Users className="h-8 w-8 inline-block mr-3 text-primary" />
-                    Class Group Activities
-                  </h1>
-                  <p className="text-muted-foreground mt-1">
-                    Manage student activities across different classes and subjects
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button 
-                    onClick={() => navigate('/class-activities/create')} 
-                    className="gap-1"
-                    size="sm"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Create Activity
-                  </Button>
-                  <div className="flex items-center gap-2 text-sm ml-4">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">
-                      {new Date().toLocaleDateString('en-US', { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })}
-                    </span>
-                  </div>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+              <div>
+                <h1 className="text-3xl font-bold flex items-center gap-2">
+                  <Users className="h-7 w-7 text-primary" />
+                  Class Group Activities
+                </h1>
+                <p className="text-muted-foreground mt-1">
+                  Manage student activities across different classes and subjects
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <Button className="gap-1">
+                  <Plus className="h-4 w-4" />
+                  Create Activity
+                </Button>
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  Saturday, April 5, 2025
                 </div>
               </div>
             </div>
-          </section>
 
-          <div className="grid gap-6">
-            {/* Filters Section */}
-            <section className="animate-fade-in">
-              <div className="space-y-4">
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search by student name, title..."
-                      className="pl-10"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                  <div className="flex flex-col md:flex-row gap-3">
-                    <Select value={classFilter} onValueChange={setClassFilter}>
-                      <SelectTrigger className="w-full md:w-[180px]">
+            <div className="grid gap-6">
+              <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by student name, title..."
+                    className="pl-10"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <Select value={classFilter} onValueChange={setClassFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <div className="flex items-center">
                         <Filter className="h-4 w-4 mr-2" />
-                        <SelectValue placeholder="Class" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Classes</SelectItem>
-                        {classes.filter(c => c !== 'all').map(classItem => (
-                          <SelectItem key={classItem} value={classItem}>{classItem}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-                      <SelectTrigger className="w-full md:w-[180px]">
+                        <span>{classFilter === 'all' ? 'All Classes' : classFilter}</span>
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem key="all-classes" value="all">All Classes</SelectItem>
+                      {classes.filter(c => c !== 'all').map(classItem => (
+                        <SelectItem key={`class-${classItem}`} value={classItem}>{classItem}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={subjectFilter} onValueChange={setSubjectFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <div className="flex items-center">
                         <Filter className="h-4 w-4 mr-2" />
-                        <SelectValue placeholder="Subject" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Subjects</SelectItem>
-                        {subjects.filter(s => s !== 'all').map(subject => (
-                          <SelectItem key={subject} value={subject}>{subject}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="w-full md:w-[180px]">
+                        <span>{subjectFilter === 'all' ? 'All Subjects' : subjectFilter}</span>
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem key="all-subjects" value="all">All Subjects</SelectItem>
+                      {subjects.filter(s => s !== 'all').map(subject => (
+                        <SelectItem key={`subject-${subject}`} value={subject}>{subject}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <div className="flex items-center">
                         <Filter className="h-4 w-4 mr-2" />
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="Pending">Pending</SelectItem>
-                        <SelectItem value="Submitted">Submitted</SelectItem>
-                        <SelectItem value="Graded">Graded</SelectItem>
-                        <SelectItem value="Overdue">Overdue</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                        <span>{statusFilter === 'all' ? 'All Status' : statusFilter}</span>
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem key="status-all" value="all">All Status</SelectItem>
+                      <SelectItem key="status-pending" value="Pending">Pending</SelectItem>
+                      <SelectItem key="status-submitted" value="Submitted">Submitted</SelectItem>
+                      <SelectItem key="status-graded" value="Graded">Graded</SelectItem>
+                      <SelectItem key="status-overdue" value="Overdue">Overdue</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            </section>
 
-            {/* Activities List */}
-            <section className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
               <div className="space-y-4">
                 {loading ? (
                   renderSkeleton()
                 ) : paginatedActivities.length > 0 ? (
-                  paginatedActivities.map(activity => (
-                    <Card
-                      key={activity.id}
-                      className="activity-card overflow-hidden hover:border-primary/40 transition-all duration-300"
-                      onClick={() => navigate(`/student-activity-details/${activity.activityId}`)}
-                    >
-                      <CardContent className="p-6 grid gap-4">
-                        <div className="flex flex-col">
-                          <div className="flex items-start justify-between">
-                            <h3 className="font-semibold text-lg">{activity.title}</h3>
-                            {getStatusBadge(activity.status)}
-                          </div>
-                          <div className="flex flex-col md:flex-row gap-2 md:gap-6 text-sm text-muted-foreground mt-1">
-                            <p><span className="font-medium">Student:</span> {activity.studentName}</p>
-                            <p><span className="font-medium">Class:</span> {activity.class}</p>
-                            <p><span className="font-medium">Subject:</span> {activity.subject}</p>
-                          </div>
-                          <p className="mt-2 line-clamp-2 text-sm">{activity.description}</p>
-                        </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between mt-auto">
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Clock className="h-3.5 w-3.5" />
-                            <span>Due: {formatDate(activity.dueDate)}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
+                  paginatedActivities.map((activity, index) => {
+                    const id = getValue(activity, ['id', 'activityId', 'classGroupSubjectActivityId'], index.toString());
+                    const activityId = getValue(activity, ['activityId', 'id', 'classGroupSubjectActivityId']);
+                    const title = getValue(activity, ['title', 'activity.title', 'activityName']);
+                    const studentName = getValue(activity, ['studentName', 'userName', 'student.userName', 'activity.studentName']);
+                    const className = getValue(activity, ['class', 'className', 'classGroup.className', 'activity.classGroup.className']);
+                    const subject = getValue(activity, ['subject', 'subjectName', 'activity.subject']);
+                    const description = getValue(activity, ['description', 'activity.description']);
+                    const dueDate = getValue(activity, ['dueDate', 'activity.dueDate', 'deadline']);
+                    const status = getValue(activity, ['status'], 'Pending');
+                    
+                    return (
+                      <Card
+                        key={`activity-${id}-${index}`}
+                        className="hover:border-primary/40 transition-all duration-300 cursor-pointer"
+                        onClick={() => navigate(`/student-activity-details/${activityId}`)}
+                      >
+                        <CardContent className="p-6">
+                          <div className="flex flex-col">
+                            <div className="flex items-start justify-between">
+                              <h3 className="font-semibold text-lg">{title}</h3>
+                              {getStatusBadge(status)}
+                            </div>
+                            <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground mt-2">
+                              <div className="flex items-center gap-1">
+                                <span className="font-medium">Student:</span> 
+                                <span>{studentName}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="font-medium">Class:</span> 
+                                <span>{className}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="font-medium">Subject:</span> 
+                                <span>{subject}</span>
+                              </div>
+                            </div>
+                            <p className="mt-2 line-clamp-2 text-sm">{description}</p>
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between mt-4 pt-2 border-t">
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Clock className="h-3.5 w-3.5" />
+                                <span>Due: {formatDate(dueDate)}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-destructive"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Delete activity?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently delete this 
+                                        activity and remove it from our servers.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel onClick={(e) => e.stopPropagation()}>
+                                        Cancel
+                                      </AlertDialogCancel>
+                                      <AlertDialogAction 
+                                        onClick={(e) => handleDeleteActivity(id, e)}
+                                        className="bg-destructive text-destructive-foreground"
+                                      >
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="self-end text-destructive"
-                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-primary"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(`/student-activity-details/${activityId}`);
+                                  }}
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  View Details
+                                  <ChevronRight className="h-4 w-4 ml-1" />
                                 </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete activity?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete this 
-                                    activity and remove it from our servers.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel onClick={(e) => e.stopPropagation()}>
-                                    Cancel
-                                  </AlertDialogCancel>
-                                  <AlertDialogAction 
-                                    onClick={(e) => handleDeleteActivity(activity.id, e)}
-                                    className="bg-destructive text-destructive-foreground"
-                                  >
-                                    Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="self-end text-primary"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/student-activity-details/${activity.activityId}`);
-                              }}
-                            >
-                              View Details
-                              <ChevronRight className="h-4 w-4 ml-1" />
-                            </Button>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
+                        </CardContent>
+                      </Card>
+                    );
+                  })
                 ) : (
-                  <div className="text-center py-12">
+                  <div className="text-center py-12 border rounded-lg">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
                       <Users className="h-8 w-8 text-muted-foreground" />
                     </div>
@@ -390,7 +444,6 @@ const ClassGroupSubjectActivity = () => {
                 )}
               </div>
               
-              {/* Pagination */}
               {filteredActivities.length > 0 && (
                 <div className="mt-6">
                   <Pagination>
@@ -403,7 +456,7 @@ const ClassGroupSubjectActivity = () => {
                       </PaginationItem>
                       
                       {Array.from({ length: totalPages }).map((_, i) => (
-                        <PaginationItem key={i}>
+                        <PaginationItem key={`page-${i+1}`}>
                           <PaginationLink 
                             isActive={currentPage === i + 1}
                             onClick={() => setCurrentPage(i + 1)}
@@ -423,8 +476,8 @@ const ClassGroupSubjectActivity = () => {
                   </Pagination>
                 </div>
               )}
-            </section>
-          </div>
+            </div>
+          </section>
         </div>
       </main>
       
