@@ -43,7 +43,7 @@ const App = () => (
           <Route path="/activitiespagination" element={<ActivitiesPaginated />} />
           <Route path="/classgroupsubject" element={<ClassGroupSubjectActivity />} />
           <Route path="/activitygroupview" element={<ActivityGroupView />} />
-          <Route path="/classgroupsubjectsactivitytudentview" element={<ClassGroupSubjectStudentActivity/>} />
+          <Route path="/classgroupsubjectsactivitytudentview/:activityId" element={<ClassGroupSubjectStudentActivity/>} />
           
           
           <Route path="/activities/create" element={<CreateActivity />} />

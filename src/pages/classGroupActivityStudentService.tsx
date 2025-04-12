@@ -217,9 +217,9 @@ const mockStudentActivities = [
 ];
 
 export const classGroupActivityStudentService = {
-  getClassGroupActivities: async () => {
+  getClassGroupActivities: async (activityId:string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/classgroupsubjectstudentactivities`);
+      const response = await fetch(`${API_BASE_URL}/classgroupsubjectstudentactivities/${activityId}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch activities: ${response.status}`);
       }

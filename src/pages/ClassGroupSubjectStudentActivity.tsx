@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { 
   BookOpen, 
   Calendar, 
@@ -67,6 +67,7 @@ interface ActivityData {
 const ClassGroupSubjectStudentActivity = () => {
   const navigate = useNavigate();
   const [activities, setActivities] = useState<ActivityData[]>([]);
+  const { activityId } = useParams<{ activityId: string }>();
   const [filteredActivities, setFilteredActivities] = useState<ActivityData[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [classFilter, setClassFilter] = useState('all');
@@ -81,7 +82,7 @@ const ClassGroupSubjectStudentActivity = () => {
     const fetchActivities = async () => {
       setLoading(true);
       try {
-        const data = await activitystudentClassGroupService.getClassGroupActivities();
+        const data = await activitystudentClassGroupService.getClassGroupActivities(activityId);
         console.log("The data from classGroupActivityService is:", data);
         
         setActivities(data);

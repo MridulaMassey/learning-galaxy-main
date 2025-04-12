@@ -351,7 +351,7 @@ const ClassGroupSubjectActivity = () => {
                       <Card
                         key={`activity-${id}-${index}`}
                         className="hover:border-primary/40 transition-all duration-300 cursor-pointer"
-                        onClick={() => navigate(`/teacherassignmentdetails/${activityId}`)}
+                        onClick={() => navigate(`/classgroupsubjectsactivitytudentview/${activityId}`)}
                       >
                         <CardContent className="p-6">
                           <div className="flex flex-col">
@@ -418,7 +418,7 @@ const ClassGroupSubjectActivity = () => {
                                   className="text-primary"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    navigate(`/teacherassignmentdetails/${activityId}`);
+                                    navigate(`/classgroupsubjectsactivitytudentview/${activityId}`);
                                   }}
                                 >
                                   View Details
