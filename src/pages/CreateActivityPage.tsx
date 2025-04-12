@@ -61,6 +61,7 @@ interface CreateActivityRequest {
   subjectId?: string;
   pdfFileBase64?: string;
   fileName?: string;
+  weightagePercent?: number; // Add weightage field to the request interface
 }
 
 const containerVariants = {
@@ -106,6 +107,7 @@ const activityFormSchema = z.object({
     .min(2, { message: "Activity name must be at least 2 characters long" })
     .max(50, { message: "Activity name must be less than 50 characters" }),
   subjectId: z.string().optional(), // Added subject ID field
+  weightagePercent: z.number().min(1, { message: "Weightage must be at least 1" }).max(100, { message: "Weightage must be at most 100" }), // Add weightage validation
 });
 
 type ActivityFormValues = z.infer<typeof activityFormSchema>;
@@ -153,6 +155,7 @@ const CreateActivity = () => {
     teacherId: "F7400196-CDEB-49ED-11BA-08DD64CD7D35", // Default teacher ID
     activityName: "",
     subjectId: "", // Default empty subject ID
+    weightagePercent: 50, // Default weightage value
   };
 
   const form = useForm<ActivityFormValues>({
@@ -179,6 +182,7 @@ const CreateActivity = () => {
         dueDate: data.dueDate.toISOString(),
         classGroupId: data.classGroupId,
         teacherId: data.teacherId,
+        weightagePercent: data.weightagePercent, // Add weightage to the request
       };
       
       // Add subject ID to request if selected
@@ -377,6 +381,35 @@ const CreateActivity = () => {
                         </FormControl>
                         <FormDescription>
                           A short name for referencing this activity
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </motion.div>
+
+                {/* Add the new Weightage field */}
+                <motion.div variants={itemVariants}>
+                  <FormField
+                    control={form.control}
+                    name="weightagePercent"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Weightage</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Enter weightage (1-100)"
+                            {...field}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value, 10);
+                              field.onChange(isNaN(value) ? "" : value);
+                            }}
+                            className="h-12"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          The weightage of this activity (value between 1-100)
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
